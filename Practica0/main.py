@@ -57,7 +57,7 @@ def integra_mc(func, a, b, num_puntos=10000):
     print("The area of the integral is aproximately:", area)
 
     # pinta el resultado under
-    #paint(func, a, b, maximum, random_x, random_y, random_valid, num_puntos)
+    paint(func, a, b, maximum, random_x, random_y, random_valid, num_puntos)
 
     return time.time_ns() - startTime
 
@@ -116,10 +116,10 @@ if __name__ == "__main__":
     #resnp = integra_mc(constant, 0.25, 1.25)
     #resnp = integra_mc(sin, 0, 3.14)
 
-    # resnp = integra_mc(square, 0.25, 1.25)
-    # print("Time of numpy operations:", resnp)
-    # resp = integra_mc_for(square, 0.25, 1.25)
-    # print("Time of python fors:", resp)
-    # print(resnp / resp)
+    resnp = integra_mc(square, 0.25, 1.25)
+    print("Time of numpy operations:", resnp)
+    resp = integra_mc_for(square, 0.25, 1.25)
+    print("Time of python fors:", resp)
+    print(resnp / resp)
 
-    compara_tiempos()
+    #compara_tiempos()
