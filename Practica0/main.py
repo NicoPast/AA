@@ -57,7 +57,7 @@ def integra_mc(func, a, b, num_puntos=10000):
     print("The area of the integral is aproximately:", area)
 
     # pinta el resultado under
-    #paint(func, a, b, maximum, random_x, random_y, random_valid, num_puntos)
+    # paint(func, a, b, maximum, random_x, random_y, random_valid, num_puntos)
 
     return time.time_ns() - startTime
 
