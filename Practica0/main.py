@@ -106,8 +106,8 @@ def compara_tiempos():
         times_np += [integra_mc(square, 0.25, 1.25, int(size))]
 
     plt.figure()
-    plt.scatter(sizes, times_np, c='red', label='numpy')
-    plt.scatter(sizes, times_p, c='blue', label='python')
+    plt.scatter(sizes, times_np, c='red', label='vectores')
+    plt.scatter(sizes, times_p, c='blue', label='bucles')
     plt.legend()
     plt.show()
 
@@ -116,6 +116,7 @@ if __name__ == "__main__":
     #resnp = integra_mc(constant, 0.25, 1.25)
     #resnp = integra_mc(sin, 0, 3.14)
 
+    # used to calculate the time difference between the iterative method and the vector-based method
     # resnp = integra_mc(square, 0.25, 1.25)
     # print("Time of numpy operations:", resnp)
     # resp = integra_mc_for(square, 0.25, 1.25)
