@@ -7,7 +7,6 @@ from mpl_toolkits.mplot3d import Axes3D, axes3d
 from matplotlib import cm, colors
 from matplotlib.ticker import LinearLocator, FormatStrFormatter 
 
-
 def loadCSV(fileName):
     return read_csv(fileName, header=None).to_numpy().astype(float)
 
@@ -82,30 +81,6 @@ def minimizeCost(x, y):
 def coste (theta0, theta1, x, y, m):
     return np.sum(((theta0 + theta1 * x) - y) ** 2) / (2 * m)
 
-def descensoGradiente(x, y, alpha):
-    normalizaMat(x)
-
-def normalizaMat(mat):
-    mu = np.array(np.mean(mat, axis=0))
-    sigma = np.array(np.std(mat, axis=0))
-    
-    matNorm = ones_like(mat)
-
-    print(mu)
-    print(sigma)
-
-    #print(mat)
-
-    for i in np.arange(np.shape(mat)[1]-1):
-        #print(i+1)
-        matNorm[:, i+1] = (mat[:, i+1] - mu[i+1])/ sigma[i+1]
-    #matNorm = (mat - mu) / sigma
-
-    print(matNorm)
-
-    return matNorm, mu, sigma
-
-
 def parte1():
     data = loadCSV("ex1data1.csv")
 
@@ -117,6 +92,72 @@ def parte1():
     t0Mat, t1Mat, costeMat = make_data([-10,10], [-1,4],x, y)
     paint(x, y, t0, t1, t0Mat, t1Mat, costeMat)
 
+"""
+    ===============================================
+    ===============================================
+    ===============================================
+    ===============================================
+"""
+
+def normalizaMat(mat):
+    mu = np.array(np.mean(mat, axis=0))
+    sigma = np.array(np.std(mat, axis=0))
+    
+    matNorm = ones_like(mat)
+
+    for i in np.arange(np.shape(mat)[1]-1):
+        matNorm[:, i+1] = (mat[:, i+1] - mu[i+1])/ sigma[i+1]
+
+    return matNorm, mu, sigma
+
+def costeVec(x, y, thetas):
+    xTh = np.dot(x, thetas)
+    return np.sum((xTh - y)**2) / (2*len(x))
+
+def descensoGradiente(x, y, alpha):
+    x, mu, sigma = normalizaMat(x)
+
+    m = np.shape(x)[0]
+    n = np.shape(x)[1]
+
+    thetas = np.zeros(n)
+
+    costes = np.zeros(1500)
+
+    for i in range(len(costes)):
+
+        xTh = np.dot(x, thetas)
+
+        """
+            duda existencial
+        """
+        temp = np.dot((xTh - y), x)
+        thetas = thetas - (alpha/m) * temp
+
+        # NuevaTheta = thetas
+        # Aux = xTh - y
+        # test = np.zeros(n)
+        # for j in range(n):
+        #     Aux_j = Aux * x[:, j]
+        #     NuevaTheta[j] -= (alpha / m) * Aux_j.sum()
+        #     test[j] = Aux_j.sum()
+
+        """
+            -------------------
+        """
+
+        costes[i] = costeVec(x, y, thetas)
+
+    # print(thetas)
+    # print(NuevaTheta)
+
+    plt.plot(np.arange(len(costes)), costes)
+
+    plt.show()
+    
+def ecuacionNormal(x,y):
+    print("hola")
+
 def parte2():
     data = loadCSV("ex1data2.csv")
 
@@ -126,18 +167,12 @@ def parte2():
     m = np.shape(x)[0]
     n = np.shape(x)[1]
     
-    x = np.hstack([np.ones([m, 1]), x])
-    x, mu, sigma = normalizaMat(x)
-    # mu = np.hstack([1, mu])
-    # sigma = np.hstack([0, sigma])
-    
+    xNew = np.hstack([np.ones([m, 1]), x])
     alpha = 0.01
-
-    #descensoGradiente(x, y, alpha)
-
+    descensoGradiente(xNew, y, alpha)
 
 if __name__ == "__main__":
-    # parte1()
+    #parte1()
     parte2()
 
 
