@@ -25,14 +25,19 @@ def make_data (t0_range, t1_range, x, y):
     
 def paint(x, y, t0, t1, t0Mat, t1Mat, costeMat):
     fig = plt.figure()
-    ax = Axes3D(fig)
+
+    # to avoid a warning we do...
+    ax = Axes3D(fig, auto_add_to_figure=False)
+    fig.add_axes(ax)
 
     surf = ax.plot_surface(t0Mat,t1Mat,costeMat, cmap=cm.jet, linewidth=0, antialiased=False)
     plt.show()
+    #plt.savefig('second.png')
     
     plt.scatter(t0, t1, marker='x', color='red')
     plt.contour(t0Mat,t1Mat,costeMat, np.logspace(-2,3,20), colors='blue')
     plt.show()
+    #plt.savefig('third.png')
    
     minX = min(x)
     maxX = max(x)
@@ -41,6 +46,9 @@ def paint(x, y, t0, t1, t0Mat, t1Mat, costeMat):
     plt.plot([minX, maxX], [minY, maxY])
     plt.plot(x, y, "x", color='red')
     plt.show()
+    #plt.savefig('first.png')
+
+    print([t0, t1])
 
 def minimizeCost(x, y):
 
@@ -67,14 +75,10 @@ def minimizeCost(x, y):
         sum1 = np.sum(((x * theta1 + theta0) - y) * x)
 
         theta0 = theta0 - (alpha/m) * sum0
-        theta1 = theta1 - (alpha/m) * sum1
+        theta1 = theta1 - (alpha/m) * sum1 
 
- 
-
-    print(theta0)
-    print(theta1)
-
-    print(theta0 + theta1*7)
+    # 70.000 habs = 4.53...
+    # print(theta0 + theta1*7)
 
     return [theta0, theta1]
 
@@ -103,10 +107,16 @@ def normalizaMat(mat):
     mu = np.array(np.mean(mat, axis=0))
     sigma = np.array(np.std(mat, axis=0))
     
-    matNorm = ones_like(mat)
+    # res = (mat - mu) / sigma
+    # np.nan_to_num(res, False, 1.0)
+    # print(res.shape)
 
+    # [1, 1541.3, 4]
+    matNorm = ones_like(mat)
+    # [0, 1]
     for i in np.arange(np.shape(mat)[1]-1):
-        matNorm[:, i+1] = (mat[:, i+1] - mu[i+1])/ sigma[i+1]
+        # [1, 2]
+        matNorm[:, i+1] = (mat[:, i+1] - mu[i+1]) / sigma[i+1]
 
     return matNorm, mu, sigma
 
@@ -115,38 +125,35 @@ def costeVec(x, y, thetas):
     return np.sum((xTh - y)**2) / (2*len(x))
 
 def descensoGradiente(x, y, alpha):
-    x, mu, sigma = normalizaMat(x)
-
     m = np.shape(x)[0]
     n = np.shape(x)[1]
 
-    thetas = np.zeros(n)
+    #thetas = np.zeros(n)
+    thetas2 = np.zeros(n)
 
     costes = np.zeros(1500)
 
     for i in range(len(costes)):
+        xTh = np.dot(x, thetas2)
 
-        xTh = np.dot(x, thetas)
+        NuevaTheta = thetas2
+        Aux = xTh - y
+        for j in range(n):
+            Aux_j = Aux * x[:, j]
+            NuevaTheta[j] -= (alpha / m) * Aux_j.sum()
+        costes[i] = costeVec(x, y, thetas2)
 
-        """
-            duda existencial
-        """
-        temp = np.dot((xTh - y), x)
-        thetas = thetas - (alpha/m) * temp
+        thetas2 = NuevaTheta
 
-        # NuevaTheta = thetas
-        # Aux = xTh - y
-        # test = np.zeros(n)
-        # for j in range(n):
-        #     Aux_j = Aux * x[:, j]
-        #     NuevaTheta[j] -= (alpha / m) * Aux_j.sum()
-        #     test[j] = Aux_j.sum()
+    # for i in range(len(costes)):
+    #     xTh = np.dot(x, thetas)
 
-        """
-            -------------------
-        """
+    #     temp = np.dot(np.transpose(x), (xTh - y))
+    #     thetas = thetas - (alpha/m) * temp
+    #     costes[i] = costeVec(x, y, thetas)
 
-        costes[i] = costeVec(x, y, thetas)
+    # print(thetas)
+    # print(thetas2)
 
     # print(thetas)
     # print(NuevaTheta)
@@ -154,9 +161,11 @@ def descensoGradiente(x, y, alpha):
     plt.plot(np.arange(len(costes)), costes)
 
     plt.show()
+
+    return thetas2
     
 def ecuacionNormal(x,y):
-    print("hola")
+    return np.dot(np.linalg.pinv(np.dot(np.transpose(x), x)), np.dot(np.transpose(x), y))
 
 def parte2():
     data = loadCSV("ex1data2.csv")
@@ -168,12 +177,28 @@ def parte2():
     n = np.shape(x)[1]
     
     xNew = np.hstack([np.ones([m, 1]), x])
+
+    xNorm, mu, sigma = normalizaMat(xNew)
+
     alpha = 0.01
-    descensoGradiente(xNew, y, alpha)
+    thetasDG = descensoGradiente(xNorm, y, alpha)
+    thetasEN = ecuacionNormal(xNew,y)
+
+    example = [1.0, 1650.0, 3.0]
+    exampleNorm = ones_like(example)
+
+    # for i in np.arange(len(example)-1):
+    #     exampleNorm[i+1] = (example[i+1] - mu[i+1]) / sigma[i+1]
+
+    exampleNorm[1:] = (example[1:] - mu[1:]) / sigma[1:]
+    
+    # print(thetasDG)
+    # print(thetasEN)
+    print(np.sum(thetasDG * exampleNorm))
+    print(np.sum(thetasEN * example))
+
+    print(np.sum(thetasEN * example) / np.sum(thetasDG * exampleNorm))
 
 if __name__ == "__main__":
-    #parte1()
+    # parte1()
     parte2()
-
-
-
