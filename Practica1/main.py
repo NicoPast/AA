@@ -86,7 +86,7 @@ def coste (theta0, theta1, x, y, m):
     return np.sum(((theta0 + theta1 * x) - y) ** 2) / (2 * m)
 
 def parte1():
-    data = loadCSV("ex1data1.csv")
+    data = loadCSV("Data/ex1data1.csv")
 
     x = data[:, 0]
     y = data[:, 1]
@@ -168,7 +168,7 @@ def ecuacionNormal(x,y):
     return np.dot(np.linalg.pinv(np.dot(np.transpose(x), x)), np.dot(np.transpose(x), y))
 
 def parte2():
-    data = loadCSV("ex1data2.csv")
+    data = loadCSV("Data/ex1data2.csv")
 
     x = data[:, :-1]
     y = data[:, -1]
