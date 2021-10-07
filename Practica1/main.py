@@ -32,12 +32,10 @@ def paint(x, y, t0, t1, t0Mat, t1Mat, costeMat):
 
     surf = ax.plot_surface(t0Mat,t1Mat,costeMat, cmap=cm.jet, linewidth=0, antialiased=False)
     plt.show()
-    #plt.savefig('second.png')
     
     plt.scatter(t0, t1, marker='x', color='red')
     plt.contour(t0Mat,t1Mat,costeMat, np.logspace(-2,3,20), colors='blue')
     plt.show()
-    #plt.savefig('third.png')
    
     minX = min(x)
     maxX = max(x)
@@ -46,7 +44,6 @@ def paint(x, y, t0, t1, t0Mat, t1Mat, costeMat):
     plt.plot([minX, maxX], [minY, maxY])
     plt.plot(x, y, "x", color='red')
     plt.show()
-    #plt.savefig('first.png')
 
     print([t0, t1])
 
@@ -57,7 +54,6 @@ def minimizeCost(x, y):
 
     theta0 = theta1 = 0
 
-    # print (coste(theta0, theta1, x, y, m))
     for _ in range(1500):
         """
             Esto visualiza la progresion de la pendiente gradualmente en funcion de los erroes
@@ -109,7 +105,6 @@ def normalizaMat(mat):
     
     # res = (mat - mu) / sigma
     # np.nan_to_num(res, False, 1.0)
-    # print(res.shape)
 
     # [1, 1541.3, 4]
     matNorm = ones_like(mat)
@@ -152,12 +147,6 @@ def descensoGradiente(x, y, alpha):
     #     thetas = thetas - (alpha/m) * temp
     #     costes[i] = costeVec(x, y, thetas)
 
-    # print(thetas)
-    # print(thetas2)
-
-    # print(thetas)
-    # print(NuevaTheta)
-
     plt.plot(np.arange(len(costes)), costes)
 
     plt.show()
@@ -191,14 +180,8 @@ def parte2():
     #     exampleNorm[i+1] = (example[i+1] - mu[i+1]) / sigma[i+1]
 
     exampleNorm[1:] = (example[1:] - mu[1:]) / sigma[1:]
-    
-    # print(thetasDG)
-    # print(thetasEN)
-    print(np.sum(thetasDG * exampleNorm))
-    print(np.sum(thetasEN * example))
 
-    print(np.sum(thetasEN * example) / np.sum(thetasDG * exampleNorm))
 
 if __name__ == "__main__":
-    # parte1()
+    parte1()
     parte2()

@@ -60,7 +60,7 @@
 }
 
 
-\title{Práctica 0: Python}
+\title{Práctica 1: Regresión Lineal}
 \author{Ana Martín Sánchez, Nicolás Pastore Burgos}
 \date{21/09/2021} 
 
@@ -71,7 +71,7 @@
 
  En esta práctica, se pedía aplicar el método de regresión lineal sobre dos conjuntos de datos. 
  
- En primer lugar, se nos da un conjunto de datos que relaciona dos variables: la población de una ciudad con los beneficios de una compañía de distribución de comida en dicha ciudad.0pt
+ En primer lugar, se nos da un conjunto de datos que relaciona dos variables: la población de una ciudad con los beneficios de una compañía de distribución de comida en dicha ciudad.
  Después, se nos presenta un conjunto de datos que relaciona el precio de casas vendidas en Portland con el tamaño en pies cuadrados, el número de habitaciones y el precio de dicha casa.
 
  Para el primer conjunto de datos, se puede aplicar el método de regresión lineal con una variable; es evidente que, en el segundo caso, no es así.
@@ -87,15 +87,44 @@
 \subsection{Resultados obtenidos}
 
 \subsubsection {Parte 1}
+
+En esta parte hemos conseguido los reultados esperados; hemos podido implementar una función de descenso de gradiente que es capaz, dados unos datos, de calcular una ecuación lineal que minimice los costes. Para comprobarlo, hemos utilizado el ejemplo propuesto en el enunciado (para una población de 70.000 habitantes, los beneficios estimados son de 45.282\$). 
+
  \begin{figure}[h!]
     \begin{center}
-    \includegraphics[width=0.3\textwidth]{gradiantDescenseResult.png}
-    \includegraphics[width=0.3\textwidth]{costMap.png}
-    \includegraphics[width=0.3\textwidth]{costMap2.png}
-    \caption{Se puede observar cómo, a medida que el número de puntos calculados aumenta, la diferencia de tiempos se hace mayor.}
+    \includegraphics[width=\textwidth]{Imagenes/gradiantDescenseResult.png}
+    \caption{Gráfica que muestra la recta calculada para los datos proporcionados por el enunciado.}
+    \label{fig:Gráfica que muestra la recta calculada para los datos proporcionados por el enunciado.}
+    \end{center}
+ \end{figure}
+Además, hemos generado las gráficas que muestran los costes, como se muestran a continuación.
+
+ \begin{figure}[h!]
+    \begin{center}
+    \includegraphics[width=0.45\textwidth]{Imagenes/costMap.png}
+    \includegraphics[width=0.45\textwidth]{Imagenes/costMap2.png}
+    \caption{Representación de una sección de la ecuación que siguen las thetas.}
+    \label{fig:Representación de una sección de la ecuación que siguen las thetas.}
+    \end{center}
+ \end{figure}
+
+\subsubsection {Parte 2}
+
+En esta segunda parte, también hemos implementado un descenso de gradiente, pero con un número n de atributos. Además hemos implementado la ecuacuón normal.
+
+Para comprobar que ambas implementaciones eran correctas, hemos utilizado el ejemplo propuesto en el enunciado (la entrada [1650, 3]), y ambas nos daban el mismo resultado (293098.46), con una diferencia de menos del 0.01\% entre ambos resultados.
+
+Como comprobación adicional, hemos observado que la función de costes devuelve un resultado cada vez menor, como se puede observar a continuación.
+
+ \begin{figure}[h!]
+    \begin{center}
+    \includegraphics[width=0.6\textwidth]{Imagenes/gradiantDescenseResult2.png}
+    \caption{La función de costes es cada vez menor.}
     \label{fig:Resultados}
     \end{center}
  \end{figure}
+
+\newpage
 \subsection{Implementación}
 
 \lstinputlisting[language=Python]{main.py}
