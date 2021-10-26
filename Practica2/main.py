@@ -19,6 +19,34 @@ def gradiente(thetas, x, y):
     h = sigmoide(np.dot(x, thetas))
     return np.dot(x.T, h-y) / len(x)
 
+def paint_rect(theta, x, y):
+    plt.figure()
+
+    zoom = 5
+
+    x1min, x1max = x[:,0].min(),x[:,0].max()
+    x2min, x2max = x[:,1].min(),x[:,1].max()
+
+    xx1,xx2 = np.meshgrid(np.linspace(x1min,x1max),np.linspace(x2min,x2max))
+
+    h = sigmoide(np.c_[np.ones((xx1.ravel().shape[0], 1)), xx1.ravel(), xx2.ravel()].dot(theta))
+
+    print(h)
+    h = h.reshape(xx1.shape)
+
+    # Obtiene un vector con los índices de los ejemplos positivos
+    pos = np.where(y==1)
+    # Dibuja los ejemplos positivos
+    plt.axis([x1min-zoom, x1max+zoom, x2min-zoom, x2max+zoom])
+    plt.scatter(x[pos,0], x[pos, 1], marker='+', label="Admitted")
+    pos = np.where(y==0)
+    plt.scatter(x[pos,0], x[pos, 1], label="Not admitted")
+
+    plt.contour(xx1, xx2, h, [0.5], linewidths=1, colors='b')
+
+    plt.legend(loc="upper right")
+    plt.show()
+
 def parte1():
     data = loadCSV("Data/ex2data1.csv")
 
@@ -38,22 +66,23 @@ def parte1():
     theta_opt = result[0]
     print(coste(theta_opt,xNew,y))
 
-    x1min = np.min(x[:,0])
-    x1max = np.max(x[:,0])
-    x2min = -(theta_opt[0] + (x1min * theta_opt[1])) / theta_opt[2]
-    x2max = -(theta_opt[0] + (x1max * theta_opt[1])) / theta_opt[2]
+    # x1min = np.min(x[:,0])
+    # x1max = np.max(x[:,0])
+    # x2min = -(theta_opt[0] + (x1min * theta_opt[1])) / theta_opt[2]
+    # x2max = -(theta_opt[0] + (x1max * theta_opt[1])) / theta_opt[2]
 
-    plt.figure()
+    # plt.figure()
+    # # Obtiene un vector con los índices de los ejemplos positivos
+    # pos = np.where(y==1)
+    # # Dibuja los ejemplos positivos
+    # plt.scatter(x[pos,0], x[pos, 1], marker='+', label="Admitted")
+    # pos = np.where(y==0)
+    # plt.scatter(x[pos,0], x[pos, 1], label="Not admitted")
+    # plt.plot([x1min,x2min], [x1max, x2max])
+    # plt.legend(loc="upper right")
+    # plt.show()
 
-    # Obtiene un vector con los índices de los ejemplos positivos
-    pos = np.where(y==1)
-    # Dibuja los ejemplos positivos
-    plt.scatter(x[pos,0], x[pos, 1], marker='+', label="Admitted")
-    pos = np.where(y==0)
-    plt.scatter(x[pos,0], x[pos, 1], label="Not admitted")
-    plt.plot([x1min,x2min], [x1max, x2max])
-    plt.legend(loc="upper right")
-    plt.show()
+    paint_rect(theta_opt, x, y)
 
 """
     ===============================================
@@ -70,7 +99,7 @@ def gradienteReg():
     print("AAAA")
 
 def parte2():
-    data = loadCSV("Practica2\Data\ex2data2.csv")
+    data = loadCSV("Data\ex2data2.csv")
     x = data[:, :-1]
     y = data[:, -1]
 
@@ -84,10 +113,6 @@ def parte2():
 
     print(costeReg(thetas,x, y, l))
     
-
-
-
-
 if __name__ == "__main__":
     #parte1()
     parte2()
