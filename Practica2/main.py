@@ -34,7 +34,7 @@ def pinta_frontera_lineal(theta, x, y):
     print(h)
     h = h.reshape(xx1.shape)
 
-    # Obtiene un vector con los índices de los ejemplos positivos
+    # Obtiene un vector con los indices de los ejemplos positivos
     pos = np.where(y==1)
     # Dibuja los ejemplos positivos
     plt.axis([x1min-zoom, x1max+zoom, x2min-zoom, x2max+zoom])
@@ -72,7 +72,7 @@ def parte1():
     # x2max = -(theta_opt[0] + (x1max * theta_opt[1])) / theta_opt[2]
 
     # plt.figure()
-    # # Obtiene un vector con los índices de los ejemplos positivos
+    # # Obtiene un vector con los indices de los ejemplos positivos
     # pos = np.where(y==1)
     # # Dibuja los ejemplos positivos
     # plt.scatter(x[pos,0], x[pos, 1], marker='+', label="Admitted")
@@ -113,7 +113,7 @@ def pinta_frontera_poli(thetas, x, y, poly):
 
     plt.contour(xx1, xx2, h, [0.5], linewidths=1, colors='g')
 
-    # Obtiene un vector con los índices de los ejemplos positivos
+    # Obtiene un vector con los indices de los ejemplos positivos
     pos = np.where(y==1)
     # Dibuja los ejemplos positivos
     plt.scatter(x[pos,0], x[pos, 1], marker='+', label="Admitted")
