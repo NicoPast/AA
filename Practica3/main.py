@@ -76,8 +76,9 @@ def parte1():
 
 def forwardProcess(x, num_capas, thetas):
     a = x
+    m = x.shape[0]
     for i in range(num_capas):
-        aNew = np.hstack([np.ones([x.shape[0], 1]), a])
+        aNew = np.hstack([np.ones([m, 1]), a])
         a = sigmoide(np.dot(aNew,thetas[i].T))
 
     return a
@@ -100,7 +101,7 @@ def parte2():
 
     thetas = np.array([theta1, theta2], dtype='object')
 
-    sample = np.random.choice(m, 1)
+    #sample = np.random.choice(m, 1)
 
     res = forwardProcess(x, 2, thetas)
 
