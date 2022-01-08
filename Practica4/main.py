@@ -90,8 +90,8 @@ def parte1():
 def backprop(params_rn, num_entradas, num_ocultas, num_etiquetas, x, y, reg):
     # backprop devuelve una tupla (coste, gradiente) con el coste y el gradiente de
     # una red neuronal de tres capas, con num_entradas, num_ocultas nodos en la capa
-    # oculta y num_etiquetas nodos en la capa de salida. Si m es el número de ejemplos
-    # de entrenamiento, la dimensión de ’X’ es (m, num_entradas) y la de ’y’ es
+    # oculta y num_etiquetas nodos en la capa de salida. Si m es el numero de ejemplos
+    # de entrenamiento, la dimension de 'X' es (m, num_entradas) y la de 'y'' es
     # (m, num_etiquetas)
 
     if(num_ocultas.shape[0] + 2 < 3):

@@ -18,7 +18,7 @@
 \usepackage{subfig} 
 \usepackage{fancyhdr}
 \usepackage{amsmath}
-
+\usepackage{amssymb}
 
 \pagestyle{fancy} % options: empty , plain , fancy
 \renewcommand{\headrulewidth}{0pt} % customise the layout...
@@ -61,7 +61,7 @@
 }
 
 
-\title{Práctica 3: Regresión Lineal Multi-Clase y Redes Neuronales}
+\title{Práctica 4: Entrenamiento de Redes Neuronales}
 \author{Ana Martín Sánchez, Nicolás Pastore Burgos}
 \date{21/09/2021} 
 
@@ -70,17 +70,30 @@
 
 \section{Descripción de la práctica}
 
- En esta práctica, se pedía aplicar regresión logística multi-clase, con el fin de reconocer números escritos a mano en imágenes. 
+ En esta práctica, se pedía implementar la función de coste de una red neuronal para un conjunto de datos de entrenamiento. Posteriormente, se debía implementar el gradiente para esa red neuronal y, una vez comprobada su corrección, se pedía entrenar la red neuronal para obtener los valores óptimos de Theta1 y Theta2.
  
- Para ello, se facilitan un total de 500 ejemplos de entrenamiento (imágenes con un número escrito a mano), en las que cada ejemplo se representa como una matriz de 20x20 números reales. Cada número indica la intensidad en escala de grises de un píxel en la imagen.
-
+ Para ello, se utilizan los mismo datos de entrenamiento que en la práctica anterior: un conjunto de 500 imágenes de números escritos a mano, en el que cada imagen (de 20x20 píxeles) se representa como una matriz de 20x20 números, donde cada número indica la intensidad en escala de grises del píxel.
 
 \section{Solución propuesta}
 
- Con la implementación que proponemos a continuación, la precisión de la red neuronal se acerca al 97.5\%.
+\subsection{Resultados obtenidos}
+
+\subsubsection {Parte 1}
+
+ En esta parte, teníamos que implementar una función de coste para una red neuronal, utilizando un algoritmo de propagación hacia delante. Con nuestra implementación, obtuvimos un coste de 0.287629.
+
+Posteriormente, añadimos el término de regularización al coste, con lo que el coste subió hasta 0.384470.
+
+
+\subsubsection {Parte 2}
+
+ En esta segunda parte, necesitábamos calcular el gradiente de una red neuronal de tres o más capas. Para hacerlo, implementamos una función de retro-propagación. Primero, ejecutamos una propagación hacia delante para calcular la salida de la red, y posteriormente se ejecuta la retro-propagación, para calcular cuánto contribuye cada nodo al error total. Al hacerlo, obtuvimos un error de AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.
 
 \newpage
+\subsection{Implementación}
+
 \lstinputlisting[language=Python]{main.py}
+%\lstinputlisting[language=Python]{checkNNGradients.py}
 
 
 \end{document}
