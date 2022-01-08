@@ -51,13 +51,14 @@ def checkNNGradients(costNN, reg_param):
     """
     # Set up small NN
     input_layer_size = 3
-    hidden_layer_size = 5
+    hidden_layer_size = np.array([5])
     num_labels = 3
-    m = 5
+    m = 10
 
     # Generate some random test data
-    Theta1 = debugInitializeWeights(hidden_layer_size, input_layer_size)
-    Theta2 = debugInitializeWeights(num_labels, hidden_layer_size)
+    Theta1 = debugInitializeWeights(hidden_layer_size[0], input_layer_size)
+    #Theta2 = debugInitializeWeights(hidden_layer_size[1], hidden_layer_size[0])
+    Theta2 = debugInitializeWeights(num_labels, hidden_layer_size[0])
 
     # Reusing debugInitializeWeights to get random X
     X = debugInitializeWeights(input_layer_size - 1, m)
@@ -71,6 +72,8 @@ def checkNNGradients(costNN, reg_param):
 
     # Unroll parameters
     nn_params = np.append(Theta1, Theta2).reshape(-1)
+
+    #nn_params = np.append(nn_params, Theta3).reshape(-1)
 
     # Compute Cost
     cost, grad = costNN(nn_params,
