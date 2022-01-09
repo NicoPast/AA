@@ -11,16 +11,20 @@ def sigmoide(z):
     return 1 / (1 + np.exp(-z))
 
 def forwardProp(x, num_capas, thetas):
-    a = x
+    a = np.empty(num_capas + 1, dtype="object")
+    a[0] = x
     for i in range(num_capas):
-        aNew = np.hstack([np.ones([x.shape[0], 1]), a])
-        a = sigmoide(np.dot(aNew,thetas[i].T))
+        aNew = np.hstack([np.ones([x.shape[0], 1]), a[i]])
+        a[i] = aNew
+        a[i+1] = sigmoide(np.dot(aNew,thetas[i].T))
 
     return a
 
 def coste(x, y_ones, num_capas, thetas):
-    res = forwardProp(x, num_capas, thetas)
+    resTot = forwardProp(x, num_capas, thetas)
     
+    res = resTot[num_capas]
+
     aux = -(y_ones) * np.log(res)
 
     aux2 = (1 - y_ones) * np.log(1-res)
@@ -115,26 +119,62 @@ def backprop(params_rn, num_entradas, num_ocultas, num_etiquetas, x, y, reg):
 
     # thetas = np.array([theta1, theta2], dtype='object')
 
-    hTheta = forwardProp(x, thetas.shape[0], thetas)
+    hThetaTot = forwardProp(x, thetas.shape[0], thetas)
 
-    #print(hTheta.shape)
+    delta3 = hThetaTot[-1] - y
 
-    delta3 = hTheta - y
-
-    #test = a2 *
+    a2 = hThetaTot[-2]
 
     delta2 = np.dot(delta3, thetas[1])
 
-    print(delta2.shape)
+    delta2 = delta2 * a2 * (1-a2)
+
+    delta2 = delta2[:,1:]
+
+    Delta1M = np.zeros_like(thetas[0])
+    Delta2M = np.zeros_like(thetas[1])
+
+    # print(Delta1.shape)
+    # print(Delta2.shape)
+
+    Delta1M = (Delta1M + np.dot(delta2.T, hThetaTot[0])) / x.shape[0]
+
+    Delta1M = np.append(Delta1M[0], Delta1M[:,1:] + reg * thetas[0][:,1:])
+
+    Delta2M = (Delta2M + np.dot(delta3.T, hThetaTot[1])) / x.shape[0]
+
+    Delta2M = np.append(Delta2M[0], Delta2M[:,1:] + reg * thetas[1][:,1:])
+
+    #print(delta2.shape)
 
     # print(thetas.shape)
 
     # print(thetas[0].shape)
     # print(thetas[1].shape)
 
+    Delta1 = np.zeros_like(thetas[0])
+    Delta2 = np.zeros_like(thetas[1])
+
+    for t in range(x.shape[0]):
+        hThetaTot = forwardProp(x, thetas.shape[0], thetas)
+        a1t = hThetaTot[0][t, :] # (401,)
+        a2t = hThetaTot[1][t, :] # (26,)
+        ht = hThetaTot[2][t, :] # (10,)
+        yt = y[t] # (10,)
+        d3t = ht - yt # (10,)
+        d2t = np.dot(thetas[1].T, d3t) * (a2t * (1 - a2t)) # (26,)
+        Delta1 = Delta1 + np.dot(d2t[1:, np.newaxis], a1t[np.newaxis, :])
+        Delta2 = Delta2 + np.dot(d3t[:, np.newaxis], a2t[np.newaxis, :])
+
+    Delta1 = Delta1 / x.shape[0]
+    Delta2 = Delta2 / x.shape[0]
+    
+    # np.testing.assert_almost_equal(Delta1, Delta1M)
+    # np.testing.assert_almost_equal(Delta2, Delta2M)
+
     cost = costeRegul(x, y, thetas.shape[0], thetas, 1)
 
-    return (cost,0)
+    return (cost, np.append(Delta1M, Delta2M).reshape(-1))
 
 
 def parte2():
