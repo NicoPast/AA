@@ -8,6 +8,8 @@ from checkNNGradients import checkNNGradients
 from displayData import displayData
 from displayData import displayImage
 
+from scipy.optimize import minimize
+
 def sigmoide(z):
     return 1 / (1 + np.exp(-z))
 
@@ -38,6 +40,14 @@ def costeRegul(x, y_ones, num_capas, thetas, reg):
 
     return cost + regul
 
+def y_oneHot(yR, numLabels, m):
+    yR = (yR - 1)
+    yOneH = np.zeros((m, numLabels))  # 5000 x 10
+    for i in range(m):
+        yOneH[i][yR[i]] = 1
+
+    return yOneH
+
 def parte1():
     data = loadmat("Data/ex4data1.mat")
 
@@ -52,10 +62,7 @@ def parte1():
     numCapas = 2
     numLabels = 10
 
-    yR = (yR - 1)
-    y_onehot = np.zeros((m, numLabels))  # 5000 x 10
-    for i in range(m):
-        y_onehot[i][yR[i]] = 1
+    yOneH = y_oneHot(yR, numLabels, m)
 
     pesos = loadmat("Data/ex4weights.mat")
 
@@ -66,9 +73,11 @@ def parte1():
 
     thetas = np.array([theta1, theta2], dtype='object')
 
-    cost = costeRegul(x, y_onehot, numCapas, thetas, 1)
+    print("Coste sin regular: " + str(coste(x, yOneH, numCapas, thetas)))
 
-    print(cost)
+    costReg = costeRegul(x, yOneH, numCapas, thetas, 1)
+
+    print("Coste regulado: " + str(costReg))
 
     #sample = np.random.choice(m, numExamples)
 
@@ -85,13 +94,23 @@ def parte1():
     ===============================================
 """
 
+def grad_Delta(m, Delta, theta, reg):
+    gradient = Delta
+
+    col0 = gradient[0]
+    gradient = gradient + (reg/m)*theta
+    gradient[0] = col0
+
+    return gradient
+
 def lineal_back_prop(x, y, thetas, reg):
     m = x.shape[0]
     Delta1 = np.zeros_like(thetas[0])
     Delta2 = np.zeros_like(thetas[1])
 
+    hThetaTot = forwardProp(x, thetas.shape[0], thetas)
+    
     for t in range(m):
-        hThetaTot = forwardProp(x, thetas.shape[0], thetas)
         a1t = hThetaTot[0][t, :] # (401,)
         a2t = hThetaTot[1][t, :] # (26,)
         ht = hThetaTot[2][t, :] # (10,)
@@ -103,16 +122,11 @@ def lineal_back_prop(x, y, thetas, reg):
         Delta1 = Delta1 + np.dot(d2t[1:, np.newaxis], a1t[np.newaxis, :])
         Delta2 = Delta2 + np.dot(d3t[:, np.newaxis], a2t[np.newaxis, :])
 
-    gradient1 = Delta1 / m
-    gradient2 = Delta2 / m
-    
-    col0 = gradient1[0]
-    gradient1 = gradient1 + (reg/m)*thetas[0]
-    gradient1[0] = col0
+    Delta1 = Delta1 / m
+    Delta2 = Delta2 / m
 
-    col0 = gradient2[0]
-    gradient2 = gradient2 + (reg/m)*thetas[1]
-    gradient2[0] = col0
+    gradient1 = grad_Delta(m, Delta1, thetas[0], reg)
+    gradient2 = grad_Delta(m, Delta2, thetas[1], reg)
 
     return np.append(gradient1, gradient2).reshape(-1)
 
@@ -169,35 +183,8 @@ def backprop(params_rn, num_entradas, num_ocultas, num_etiquetas, x, y, reg):
         
     thetas[num_ocultas.shape[0]] = np.reshape(params_rn[pointer :] , (num_etiquetas, (num_ocultas[-1] + 1)))
 
-    # theta1 = np.reshape(params_rn[: num_ocultas * (num_entradas + 1)], (num_ocultas, (num_entradas + 1)))
-    # theta2 = np.reshape(params_rn[num_ocultas * (num_entradas + 1) :], (num_etiquetas, (num_ocultas + 1)))
-
-    # thetas = np.array([theta1, theta2], dtype='object')
-
-    # m = x.shape[0]
-
-    # hThetaTot = forwardProp(x, thetas.shape[0], thetas)
-
-    # delta3 = hThetaTot[-1] - y
-
-    # a2 = hThetaTot[-2]
-
-    # delta2 = np.dot(thetas[1].T, delta3.T).T
-
-    # delta2 = delta2 * a2 * (1-a2)
-
-    # delta2 = delta2[:,1:]
-
-    # Delta1M = np.dot(delta2.T, hThetaTot[0]) / m
-    # Delta2M = np.dot(delta3.T, hThetaTot[1]) / m
-
-    # Delta1M = np.append(Delta1M[0], Delta1M[1:] + (reg/m) * thetas[0][1:])
-    # Delta2M = np.append(Delta2M[0], Delta2M[1:] + (reg/m) * thetas[1][1:])
-
-    #lineal_back_prop(x, thetas, reg)
-
+    #return costeRegul(x, y, thetas.shape[0], thetas, reg), lineal_back_prop(x, y, thetas, reg)
     return costeRegul(x, y, thetas.shape[0], thetas, reg), vect_back_prop(x, y, thetas, reg)
-
 
 def parte2():
     print(np.sum(checkNNGradients(backprop, 1)))
@@ -209,14 +196,69 @@ def parte2():
     ===============================================
 """
 
-def parte3():
-    print("aun no llegamos")
+def optm_backprop(eIni, num_entradas, num_ocultas, num_etiquetas, x, yOneH, yR, laps, reg):
 
+    pesosSize = (num_entradas + 1) * num_ocultas[0] + (num_ocultas[-1] + 1) * num_etiquetas
+
+    for i in range(1, num_ocultas.shape[0]):
+        pesosSize = pesosSize + ((num_ocultas[i-1] + 1) * num_ocultas[i])
+
+    pesos = np.random.uniform(-eIni, eIni, pesosSize)
+
+    out = minimize(fun = backprop, x0= pesos, 
+        args = (num_entradas, num_ocultas, num_etiquetas, x, yOneH, reg),
+        method='TNC', jac = True, options = {'maxiter': laps})
+
+    thetas = np.empty(shape=[num_ocultas.shape[0] + 1], dtype='object')
+    pointer = num_ocultas[0] * (num_entradas + 1)
+
+    thetas[0] = np.reshape(out.x[: pointer] , (num_ocultas[0], (num_entradas + 1)))
+
+    for i in range(1, num_ocultas.shape[0]):
+        thetas[i] = np.reshape(out.x[pointer : pointer + num_ocultas[i] * (num_ocultas[i-1] + 1)], (num_ocultas[i], (num_ocultas[i-1] + 1)))
+        pointer += num_ocultas[i] * (num_ocultas[i-1] + 1)
+        
+    thetas[-1] = np.array(np.reshape(out.x[pointer :] , (num_etiquetas, (num_ocultas[-1] + 1))), dtype='float')
+
+    res = forwardProp(x, thetas.shape[0], thetas)[-1]
+
+    maxIndices = np.argmax(res,axis=1) + 1
+   
+    acertados = np.sum(maxIndices==yR)
+    print("Porcentaje acertados: " + str(acertados*100/np.shape(res)[0]) + "%")
+
+def parte3():
+    data = loadmat("Data/ex4data1.mat")
+
+    x = data['X']
+    y = data['y']
+    yR = np.ravel(y)
+
+    m = np.shape(x)[0]
+    n = np.shape(x)[1]
+
+    numCapas = 2
+    numLabels = 10
+
+    yOneH = y_oneHot(yR, numLabels, m)
+
+    num_etiquetas = 10
+    num_ocultas = np.array([25])
+    num_entradas = np.shape(x)[1]
+
+    eIni = 0.12
+    laps = 70
+    reg = 1
+
+    optm_backprop(eIni, 
+    num_entradas, num_ocultas, num_etiquetas, 
+    x, yOneH, yR, 
+    laps, reg)
 
 def main():
-    #parte1()
+    parte1()
     parte2()
-    #parte3()
+    parte3()
 
 if __name__ == "__main__":
     main()
