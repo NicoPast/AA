@@ -87,13 +87,16 @@ Posteriormente, añadimos el término de regularización al coste, con lo que el
 
 \subsubsection {Parte 2}
 
- En esta segunda parte, necesitábamos calcular el gradiente de una red neuronal de tres o más capas. Para hacerlo, implementamos una función de retro-propagación. Primero, ejecutamos una propagación hacia delante para calcular la salida de la red, y posteriormente se ejecuta la retro-propagación, para calcular cuánto contribuye cada nodo al error total. Al hacerlo, obtuvimos un error de AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.
+ En esta segunda parte, necesitábamos calcular el gradiente de una red neuronal de tres o más capas. Para hacerlo, implementamos una función de retro-propagación. Primero, ejecutamos una propagación hacia delante para calcular la salida de la red, y posteriormente se ejecuta la retro-propagación, para calcular cuánto contribuye cada nodo al error total. Al hacerlo, obtuvimos un error de 1.525e-10
+
+\subsubsection {Parte 3}
+
+ En esta última parte, y tras haber comprobado que las dos anteriores se habían desarrollado correctamente, utilizamos la función scipy.optimize.minimize, y obtuvimos una precisión de entorno al 93.5\%.
 
 \newpage
 \subsection{Implementación}
 
 \lstinputlisting[language=Python]{main.py}
-%\lstinputlisting[language=Python]{checkNNGradients.py}
 
 
 \end{document}
