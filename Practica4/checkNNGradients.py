@@ -52,6 +52,7 @@ def checkNNGradients(costNN, reg_param):
     # Set up small NN
     input_layer_size = 3
     hidden_layer_size = np.array([5])
+    #hidden_layer_size = np.array([5, 10])
     num_labels = 3
     m = 10
 

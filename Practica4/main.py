@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from numpy.lib.function_base import gradient
 
 from scipy.io import loadmat
 
@@ -21,26 +22,19 @@ def forwardProp(x, num_capas, thetas):
     return a
 
 def coste(x, y_ones, num_capas, thetas):
-    resTot = forwardProp(x, num_capas, thetas)
-    
-    res = resTot[num_capas]
+    res = forwardProp(x, num_capas, thetas)[num_capas]
 
-    aux = -(y_ones) * np.log(res)
+    return np.sum((-(y_ones) * np.log(res)) - ((1 - y_ones) * np.log(1-res))) / x.shape[0]
 
-    aux2 = (1 - y_ones) * np.log(1-res)
-
-    return np.sum(aux - aux2) / x.shape[0]
-
-def costeRegul(x, y_ones, num_capas, thetas, l):
-
+def costeRegul(x, y_ones, num_capas, thetas, reg):
     cost = coste(x, y_ones, num_capas, thetas)
 
-    vals = np.zeros(num_capas)
+    val = 0
 
     for i in range(num_capas):
-        vals[i] = np.sum(thetas[i] ** 2) - np.sum(thetas[i][:, 0] ** 2)
+        val += np.sum(np.power(thetas[i][1:], 2))
 
-    regul = np.sum(vals) * l / (2*x.shape[0]) 
+    regul = val * (reg / (2*x.shape[0]))
 
     return cost + regul
 
@@ -91,6 +85,67 @@ def parte1():
     ===============================================
 """
 
+def lineal_back_prop(x, y, thetas, reg):
+    m = x.shape[0]
+    Delta1 = np.zeros_like(thetas[0])
+    Delta2 = np.zeros_like(thetas[1])
+
+    for t in range(m):
+        hThetaTot = forwardProp(x, thetas.shape[0], thetas)
+        a1t = hThetaTot[0][t, :] # (401,)
+        a2t = hThetaTot[1][t, :] # (26,)
+        ht = hThetaTot[2][t, :] # (10,)
+        yt = y[t] # (10,)
+
+        d3t = ht - yt # (10,)
+        d2t = np.dot(thetas[1].T, d3t) * (a2t * (1 - a2t)) # (26,)
+
+        Delta1 = Delta1 + np.dot(d2t[1:, np.newaxis], a1t[np.newaxis, :])
+        Delta2 = Delta2 + np.dot(d3t[:, np.newaxis], a2t[np.newaxis, :])
+
+    gradient1 = Delta1 / m
+    gradient2 = Delta2 / m
+    
+    col0 = gradient1[0]
+    gradient1 = gradient1 + (reg/m)*thetas[0]
+    gradient1[0] = col0
+
+    col0 = gradient2[0]
+    gradient2 = gradient2 + (reg/m)*thetas[1]
+    gradient2[0] = col0
+
+    return np.append(gradient1, gradient2).reshape(-1)
+
+def vect_back_prop(x, y, thetas, reg):
+    m = x.shape[0]
+
+    hThetaTot = forwardProp(x, thetas.shape[0], thetas)
+
+    dlts = np.empty_like(thetas)
+    Deltas = np.empty_like(thetas)
+
+    dlts[-1] = hThetaTot[-1] - y
+
+    for i in range(1, thetas.shape[0]):
+        a = hThetaTot[-(i+1)]
+
+        delta = np.dot(thetas[-i].T, dlts[-i].T).T
+
+        delta = delta * a * (1-a)
+
+        delta = delta[:,1:]
+        
+        dlts[-(i+1)] = delta
+
+    res = []
+
+    for i in range(thetas.shape[0]):
+        Deltas[i] = np.dot(dlts[i].T, hThetaTot[i]) / m
+        Deltas[i] = np.append(Deltas[i][0], Deltas[i][1:] + (reg/m) * thetas[i][1:])
+        res = np.append(res, Deltas[i]).reshape(-1)
+
+    return res
+
 def backprop(params_rn, num_entradas, num_ocultas, num_etiquetas, x, y, reg):
     # backprop devuelve una tupla (coste, gradiente) con el coste y el gradiente de
     # una red neuronal de tres capas, con num_entradas, num_ocultas nodos en la capa
@@ -119,66 +174,33 @@ def backprop(params_rn, num_entradas, num_ocultas, num_etiquetas, x, y, reg):
 
     # thetas = np.array([theta1, theta2], dtype='object')
 
-    hThetaTot = forwardProp(x, thetas.shape[0], thetas)
+    # m = x.shape[0]
 
-    delta3 = hThetaTot[-1] - y
+    # hThetaTot = forwardProp(x, thetas.shape[0], thetas)
 
-    a2 = hThetaTot[-2]
+    # delta3 = hThetaTot[-1] - y
 
-    delta2 = np.dot(delta3, thetas[1])
+    # a2 = hThetaTot[-2]
 
-    delta2 = delta2 * a2 * (1-a2)
+    # delta2 = np.dot(thetas[1].T, delta3.T).T
 
-    delta2 = delta2[:,1:]
+    # delta2 = delta2 * a2 * (1-a2)
 
-    Delta1M = np.zeros_like(thetas[0])
-    Delta2M = np.zeros_like(thetas[1])
+    # delta2 = delta2[:,1:]
 
-    # print(Delta1.shape)
-    # print(Delta2.shape)
+    # Delta1M = np.dot(delta2.T, hThetaTot[0]) / m
+    # Delta2M = np.dot(delta3.T, hThetaTot[1]) / m
 
-    Delta1M = (Delta1M + np.dot(delta2.T, hThetaTot[0])) / x.shape[0]
+    # Delta1M = np.append(Delta1M[0], Delta1M[1:] + (reg/m) * thetas[0][1:])
+    # Delta2M = np.append(Delta2M[0], Delta2M[1:] + (reg/m) * thetas[1][1:])
 
-    Delta1M = np.append(Delta1M[0], Delta1M[:,1:] + reg * thetas[0][:,1:])
+    #lineal_back_prop(x, thetas, reg)
 
-    Delta2M = (Delta2M + np.dot(delta3.T, hThetaTot[1])) / x.shape[0]
-
-    Delta2M = np.append(Delta2M[0], Delta2M[:,1:] + reg * thetas[1][:,1:])
-
-    #print(delta2.shape)
-
-    # print(thetas.shape)
-
-    # print(thetas[0].shape)
-    # print(thetas[1].shape)
-
-    Delta1 = np.zeros_like(thetas[0])
-    Delta2 = np.zeros_like(thetas[1])
-
-    for t in range(x.shape[0]):
-        hThetaTot = forwardProp(x, thetas.shape[0], thetas)
-        a1t = hThetaTot[0][t, :] # (401,)
-        a2t = hThetaTot[1][t, :] # (26,)
-        ht = hThetaTot[2][t, :] # (10,)
-        yt = y[t] # (10,)
-        d3t = ht - yt # (10,)
-        d2t = np.dot(thetas[1].T, d3t) * (a2t * (1 - a2t)) # (26,)
-        Delta1 = Delta1 + np.dot(d2t[1:, np.newaxis], a1t[np.newaxis, :])
-        Delta2 = Delta2 + np.dot(d3t[:, np.newaxis], a2t[np.newaxis, :])
-
-    Delta1 = Delta1 / x.shape[0]
-    Delta2 = Delta2 / x.shape[0]
-    
-    # np.testing.assert_almost_equal(Delta1, Delta1M)
-    # np.testing.assert_almost_equal(Delta2, Delta2M)
-
-    cost = costeRegul(x, y, thetas.shape[0], thetas, 1)
-
-    return (cost, np.append(Delta1M, Delta2M).reshape(-1))
+    return costeRegul(x, y, thetas.shape[0], thetas, reg), vect_back_prop(x, y, thetas, reg)
 
 
 def parte2():
-    print(checkNNGradients(backprop, 1))
+    print(np.sum(checkNNGradients(backprop, 1)))
 
 """
     ===============================================
