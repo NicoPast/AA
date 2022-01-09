@@ -61,7 +61,7 @@
 }
 
 
-\title{Práctica 4: Entrenamiento de Redes Neuronales}
+\title{Práctica 5: Regresión lineal regularizada: sesgo y varianza}
 \author{Ana Martín Sánchez, Nicolás Pastore Burgos}
 \date{21/09/2021} 
 
@@ -70,9 +70,9 @@
 
 \section{Descripción de la práctica}
 
- En esta práctica, se pedía implementar la función de coste de una red neuronal para un conjunto de datos de entrenamiento. Posteriormente, se debía implementar el gradiente para esa red neuronal y, una vez comprobada su corrección, se pedía entrenar la red neuronal para obtener los valores óptimos de Theta1 y Theta2.
- 
- Para ello, se utilizan los mismo datos de entrenamiento que en la práctica anterior: un conjunto de 500 imágenes de números escritos a mano, en el que cada imagen (de 20x20 píxeles) se representa como una matriz de 20x20 números, donde cada número indica la intensidad en escala de grises del píxel.
+ El objetivo de esta práctica era comprobar los efectos del sesgo y de la varianza. Para ello, se proponía aprender una hipótesis sesgada (que no fuese capaz siquiera de clasificar correctamente los ejemplos de entrenamiento), y posteriormente aplicar de nuevo la regresión lineal, para sobre-ajustar los datos de entrenamiento a un polinomio de mayor grado.
+
+ Los datos que se proporcionan en este caso se corresponden con los datos históricos del agua derramada de una presa, dependiendo de los cambios en el nivel del agua.
 
 \section{Solución propuesta}
 
@@ -80,18 +80,11 @@
 
 \subsubsection {Parte 1}
 
- En esta parte, teníamos que implementar una función de coste para una red neuronal, utilizando un algoritmo de propagación hacia delante. Con nuestra implementación, obtuvimos un coste de 0.287629.
+ En esta parte, teníamos que implementar la función de coste y la de gradiente de la regresión lineal regularizada para estos datos. Al hacerlos, obtuvimos un coste de 303.993, y un gradiente en el rango [-15.241, 598.250].
 
-Posteriormente, añadimos el término de regularización al coste, con lo que el coste subió hasta 0.384470.
+ Después, utilizamos la función scipy.optimize.minimize, como se pedía en el enunciado, para minimizar el error sobre los ejemplos de entrenamiento. Al hacerlos, con un valor λ = 0, obtuvimos un vector que define la siguiente recta:
 
 
-\subsubsection {Parte 2}
-
- En esta segunda parte, necesitábamos calcular el gradiente de una red neuronal de tres o más capas. Para hacerlo, implementamos una función de retro-propagación. Primero, ejecutamos una propagación hacia delante para calcular la salida de la red, y posteriormente se ejecuta la retro-propagación, para calcular cuánto contribuye cada nodo al error total. Al hacerlo, obtuvimos un error de 1.525e-10
-
-\subsubsection {Parte 3}
-
- En esta última parte, y tras haber comprobado que las dos anteriores se habían desarrollado correctamente, utilizamos la función scipy.optimize.minimize, y obtuvimos una precisión de entre el 90\% y el 95\%.
 
 \newpage
 \subsection{Implementación}
