@@ -222,9 +222,9 @@ def main():
     y3Val = data3['yval']
     y3ValR = np.ravel(y3Val)
 
-    #parte1(x1, y1R)
-    #parte1_2(x2, y2R, 1.0, 0.1)
-    #parte1_3(x3, x3Val, y3R, y3ValR)
+    parte1(x1, y1R)
+    parte1_2(x2, y2R, 1.0, 0.1)
+    parte1_3(x3, x3Val, y3R, y3ValR)
     parte2()
 
 if __name__ == "__main__":
