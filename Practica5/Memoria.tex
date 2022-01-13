@@ -70,22 +70,34 @@
 
 \section{Descripción de la práctica}
 
- El objetivo de esta práctica era comprobar los efectos del sesgo y de la varianza. Para ello, se proponía aprender una hipótesis sesgada (que no fuese capaz siquiera de clasificar correctamente los ejemplos de entrenamiento), y posteriormente aplicar de nuevo la regresión lineal, para sobre-ajustar los datos de entrenamiento a un polinomio de mayor grado.
+  El objetivo de esta práctica era comprobar los efectos del sesgo y de la varianza. Para ello, se proponía aprender una hipótesis sesgada (que no fuese capaz siquiera de clasificar correctamente los ejemplos de entrenamiento), y posteriormente aplicar de nuevo la regresión lineal, para sobre-ajustar los datos de entrenamiento a un polinomio de mayor grado.
 
- Los datos que se proporcionan en este caso se corresponden con los datos históricos del agua derramada de una presa, dependiendo de los cambios en el nivel del agua.
+Los datos que se proporcionan en este caso se corresponden con los datos históricos del agua derramada de una presa, dependiendo de los cambios en el nivel del agua.
 
 \section{Solución propuesta}
 
 \subsection{Resultados obtenidos}
 
-\subsubsection {Parte 1}
+ \begin{figure}[h!]
+    \begin{center}
+    \includegraphics[width=0.45\textwidth]{Figura1.png}
+    \includegraphics[width=0.45\textwidth]{Figura2.png}
+    \end{center}
+ \end{figure}
 
- En esta parte, teníamos que implementar la función de coste y la de gradiente de la regresión lineal regularizada para estos datos. Al hacerlos, obtuvimos un coste de 303.993, y un gradiente en el rango [-15.241, 598.250].
 
- Después, utilizamos la función scipy.optimize.minimize, como se pedía en el enunciado, para minimizar el error sobre los ejemplos de entrenamiento. Al hacerlos, con un valor λ = 0, obtuvimos un vector que define la siguiente recta:
+ \begin{figure}[h!]
+    \begin{center}
+    \includegraphics[width=0.45\textwidth]{Figura3.png}
+    \includegraphics[width=0.45\textwidth]{Figura4.png}
+    \end{center}
+ \end{figure}
 
-
-
+ \begin{figure}[h!]
+    \begin{center}
+    \includegraphics[width=\textwidth]{Figura5.png}
+    \end{center}
+ \end{figure}
 \newpage
 \subsection{Implementación}
 
