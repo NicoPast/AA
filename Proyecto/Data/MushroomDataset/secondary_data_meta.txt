@@ -35,10 +35,13 @@
    3. cap-surface (n):          fibrous=i, grooves=g, scaly=y, smooth=s,
 								shiny=h, leathery=l, silky=k, sticky=t,
 								wrinkled=w, fleshy=e
+
+	COMMENT: detectado d sin saber que es
+
    4. cap-color (n):            brown=n, buff=b, gray=g, green=r, pink=p,
 								purple=u, red=e, white=w, yellow=y, blue=l, 
 								orange=o,  black=k
-   5. does-bruise-bleed (n):	bruises-or-bleeding=t,no=f
+   5. does-bruise-or-bleed (n):	bruises-or-bleeding=t,no=f
    6. gill-attachment (n):      adnate=a, adnexed=x, decurrent=d, free=e, 
 								sinuate=s, pores=p, none=f, unknown=?
    7. gill-spacing (n):         close=c, distant=d, none=f
