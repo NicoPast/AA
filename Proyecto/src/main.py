@@ -6,17 +6,44 @@ from sklearn.metrics import accuracy_score
 
 from pandas.io.parsers import read_csv
 
-from svmMethod import evaluateSVM
 from prepareData import analyzeData, prepareData
+from evaluateSVM import evaluateSVM
+from evaluateNeuronal import optm_backprop, forwardProp
+from evaluateLogistic import evalLogisticReg
 
 import time
-
 
 def loadCSV(fileName):
     data = read_csv(fileName, sep=';',  on_bad_lines='skip')
     data.fillna('empty', inplace=True)
     prepareData(data)
     return data
+
+def evalSVM(xTrain, xVal, xTest, yTrain, yVal, yTest):
+    s, acc, c, sig = evaluateSVM(xTrain, xVal, yTrain, yVal)
+    print('Accuracy over Test sample: ' + str(accuracy_score(yTest, s.predict(xTest)) * 100) + '%')
+
+def evalNeuronal(xTrain, xVal, xTest, yTrain, yVal, yTest, n):
+    num_etiquetas = 1
+    num_ocultas = np.array([60, 20])
+    num_entradas = n
+
+    eIni = 0.12
+    laps = 70
+    reg = 1
+
+    th = optm_backprop(eIni, 
+    num_entradas, num_ocultas, num_etiquetas, 
+    xTrain, xVal, yTrain, yVal, 
+    laps, reg)
+
+    res = forwardProp(xTest, th.shape[0], th)[-1]
+    maxIndices = np.argmax(res,axis=1) + 1 
+    acertados = np.sum(maxIndices == yTest)
+    print("Accuracy over Test sample: " + str(acertados*100/np.shape(res)[0]) + "%")
+
+def evalLogistic(xTrain, xVal, xTest, yTrain, yVal, yTest):
+    evalLogisticReg(xTrain, xVal, yTrain, yVal)
 
 def main():
     dataR = loadCSV("../Data/MushroomDataset/secondary_data_shuffled.csv")
@@ -32,7 +59,7 @@ def main():
     m = y.shape[0]
     n = x.shape[1]
 
-    trainPerc = 0.2
+    trainPerc = 0.4
     valPerc = 0.2 + trainPerc
     testPerc = 0.2 + valPerc
     train = int(trainPerc * m)
@@ -55,7 +82,7 @@ def main():
     print(xVal.shape)
     print(yVal.shape)
 
-    s, acc, c, sig = evaluateSVM(xTrain, xVal, yTrain, yVal)
+    #evalSVM(xTrain, xVal, xTest, yTrain, yVal, yTest)
 
     # 0.02 0.02 0.02
     # Best accuracy: 0.7493857493857494
@@ -86,8 +113,10 @@ def main():
     # Sigma: 3.0
     # Seconds elapsed of test: 3856.3216075897217
     # Accuracy over Test sample: 99.98362534796136%
-  
-    print('Accuracy over Test sample: ' + str(accuracy_score(yTest, s.predict(xTest)) * 100) + '%')
+
+    evalNeuronal(xTrain, xVal, xTest, yTrain, yVal, yTest, n)
+
+    #evalLogistic(xTrain, xVal, xTest, yTrain, yVal, yTest)
 
 if __name__ == "__main__":
     main()

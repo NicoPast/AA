@@ -1,14 +1,8 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from numpy.lib.function_base import gradient
-
-from scipy.io import loadmat
-
-from checkNNGradients import checkNNGradients
-from displayData import displayData
-from displayData import displayImage
 
 from scipy.optimize import minimize
+
+import time
 
 def sigmoide(z):
     return 1 / (1 + np.exp(-z))
@@ -20,7 +14,6 @@ def forwardProp(x, num_capas, thetas):
         aNew = np.hstack([np.ones([x.shape[0], 1]), a[i]])
         a[i] = aNew
         a[i+1] = sigmoide(np.dot(aNew,thetas[i].T))
-
     return a
 
 def coste(x, y_ones, num_capas, thetas):
@@ -40,60 +33,6 @@ def costeRegul(x, y_ones, num_capas, thetas, reg):
 
     return cost + regul
 
-def y_oneHot(yR, numLabels, m):
-    yR = (yR - 1)
-    yOneH = np.zeros((m, numLabels))  # 5000 x 10
-    for i in range(m):
-        yOneH[i][yR[i]] = 1
-
-    return yOneH
-
-def parte1():
-    data = loadmat("Data/ex4data1.mat")
-
-    x = data['X']
-    y = data['y']
-    yR = np.ravel(y)
-
-    m = np.shape(x)[0]
-    n = np.shape(x)[1]
-
-    numExamples = 100
-    numCapas = 2
-    numLabels = 10
-
-    yOneH = y_oneHot(yR, numLabels, m)
-
-    pesos = loadmat("Data/ex4weights.mat")
-
-    # red neuronal 400 neuronas input
-    # 25 hidden
-    # 10 output
-    theta1, theta2 = pesos['Theta1'], pesos['Theta2']
-
-    thetas = np.array([theta1, theta2], dtype='object')
-
-    print("Coste sin regular: " + str(coste(x, yOneH, numCapas, thetas)))
-
-    costReg = costeRegul(x, yOneH, numCapas, thetas, 1)
-
-    print("Coste regulado: " + str(costReg))
-
-    #sample = np.random.choice(m, numExamples)
-
-    #displayData(x[sample, :])
-
-    #displayImage(x[700, :])
-
-    #plt.show()
-
-"""
-    ===============================================
-    ===============================================
-    ===============================================
-    ===============================================
-"""
-
 def grad_Delta(m, Delta, theta, reg):
     gradient = Delta
 
@@ -109,21 +48,19 @@ def lineal_back_prop(x, y, thetas, reg):
     Delta2 = np.zeros_like(thetas[1])
 
     hThetaTot = forwardProp(x, thetas.shape[0], thetas)
-    
-    print(hThetaTot[0].shape)
-    print(hThetaTot[1].shape)
-    print(hThetaTot[2].shape)
+
+    dlts = np.empty_like(thetas)
+    Deltas = np.empty_like(thetas)
+
+    dlts[-1] = (hThetaTot[-1].T - y).T
     
     for t in range(m):
         a1t = hThetaTot[0][t, :] # (401,)
         a2t = hThetaTot[1][t, :] # (26,)
         ht = hThetaTot[2][t, :] # (10,)
-        yt = y[t] # (10,)
+        yt = np.reshape(y[t], (1,)) # (10,)
 
         d3t = ht - yt # (10,)
-
-        #print(d3t.shape)
-
         d2t = np.dot(thetas[1].T, d3t) * (a2t * (1 - a2t)) # (26,)
 
         Delta1 = Delta1 + np.dot(d2t[1:, np.newaxis], a1t[np.newaxis, :])
@@ -145,7 +82,7 @@ def vect_back_prop(x, y, thetas, reg):
     dlts = np.empty_like(thetas)
     Deltas = np.empty_like(thetas)
 
-    dlts[-1] = hThetaTot[-1] - y
+    dlts[-1] = (hThetaTot[-1].T - y).T
 
     for i in range(1, thetas.shape[0]):
         a = hThetaTot[-(i+1)]
@@ -193,17 +130,7 @@ def backprop(params_rn, num_entradas, num_ocultas, num_etiquetas, x, y, reg):
     #return costeRegul(x, y, thetas.shape[0], thetas, reg), lineal_back_prop(x, y, thetas, reg)
     return costeRegul(x, y, thetas.shape[0], thetas, reg), vect_back_prop(x, y, thetas, reg)
 
-def parte2():
-    print(np.sum(checkNNGradients(backprop, 1)))
-
-"""
-    ===============================================
-    ===============================================
-    ===============================================
-    ===============================================
-"""
-
-def optm_backprop(eIni, num_entradas, num_ocultas, num_etiquetas, x, yOneH, yR, laps, reg):
+def optm_backprop(eIni, num_entradas, num_ocultas, num_etiquetas, xTrain, xVal, yTrain, yVal, laps, reg):
 
     pesosSize = (num_entradas + 1) * num_ocultas[0] + (num_ocultas[-1] + 1) * num_etiquetas
 
@@ -212,9 +139,14 @@ def optm_backprop(eIni, num_entradas, num_ocultas, num_etiquetas, x, yOneH, yR, 
 
     pesos = np.random.uniform(-eIni, eIni, pesosSize)
 
+    startTime = time.time()
+
     out = minimize(fun = backprop, x0= pesos, 
-        args = (num_entradas, num_ocultas, num_etiquetas, x, yOneH, reg),
+        args = (num_entradas, num_ocultas, num_etiquetas, xTrain, yTrain, reg),
         method='TNC', jac = True, options = {'maxiter': laps})
+
+    endTime = time.time()
+    print('Seconds elapsed of test: ' + str(endTime - startTime))
 
     thetas = np.empty(shape=[num_ocultas.shape[0] + 1], dtype='object')
     pointer = num_ocultas[0] * (num_entradas + 1)
@@ -227,48 +159,9 @@ def optm_backprop(eIni, num_entradas, num_ocultas, num_etiquetas, x, yOneH, yR, 
         
     thetas[-1] = np.array(np.reshape(out.x[pointer :] , (num_etiquetas, (num_ocultas[-1] + 1))), dtype='float')
 
-    res = forwardProp(x, thetas.shape[0], thetas)[-1]
+    res = forwardProp(xVal, thetas.shape[0], thetas)[-1]
+    maxIndices = np.argmax(res,axis=1)
+    acertados = np.sum(maxIndices == yVal)
+    print("Accuracy of train: " + str(acertados*100/np.shape(res)[0]) + "%")
 
-    maxIndices = np.argmax(res,axis=1) + 1
-   
-    acertados = np.sum(maxIndices==yR)
-    print("Porcentaje acertados: " + str(acertados*100/np.shape(res)[0]) + "%")
-
-def parte3():
-    data = loadmat("Data/ex4data1.mat")
-
-    x = data['X']
-    y = data['y']
-    yR = np.ravel(y)
-
-    m = np.shape(x)[0]
-    n = np.shape(x)[1]
-
-    numCapas = 2
-    numLabels = 10
-
-    yOneH = y_oneHot(yR, numLabels, m)
-
-    num_etiquetas = 10
-    num_ocultas = np.array([25])
-    num_entradas = np.shape(x)[1]
-
-    eIni = 0.12
-    laps = 70
-    reg = 1
-
-    print(yOneH.shape)
-    print(yR.shape)
-
-    optm_backprop(eIni, 
-    num_entradas, num_ocultas, num_etiquetas, 
-    x, yOneH, yR, 
-    laps, reg)
-
-def main():
-    parte1()
-    parte2()
-    parte3()
-
-if __name__ == "__main__":
-    main()
+    return thetas
