@@ -10,24 +10,7 @@ from sklearn.metrics import accuracy_score
 
 import time
 
-from threading import Thread
-
-def foo(bar):
-    print('hello {0}'.format(bar))
-    return "foo"
-
-class ThreadWithReturnValue(Thread):
-    def __init__(self, group=None, target=None, name=None,
-                 args=(), kwargs={}, Verbose=None):
-        Thread.__init__(self, group, target, name, args, kwargs)
-        self._return = None
-    def run(self):
-        if self._target is not None:
-            self._return = self._target(*self._args,
-                                                **self._kwargs)
-    def join(self, *args):
-        Thread.join(self, *args)
-        return self._return
+from threadRetVal import ThreadWithReturnValue
 
 def threadMethod(x, xVal, y, yVal, c, sigma):
     print('Testing c ' + str(c) + ' sigma ' + str(sigma))
@@ -38,7 +21,7 @@ def threadMethod(x, xVal, y, yVal, c, sigma):
     return s, accuracy_score(yVal, s.predict(xVal))
 
 def evaluateSVM(x, xVal, y, yVal):
-    print("\nCOMENCING STUDY OF SVM\n")
+    print("\nCOMENCING TRAINING OF SVM\n")
 
     startTime = time.time()
 
@@ -74,8 +57,8 @@ def evaluateSVM(x, xVal, y, yVal):
     bestSVM = resSVM[w[0][0],w[1][0]]
 
     print("Best accuracy: " + str(bestAcc))
-    print("C: " + str(bestC))
-    print("Sigma: " + str(bestSigma))
+    print("Best C: " + str(bestC))
+    print("Best Sigma: " + str(bestSigma))
 
     endTime = time.time()
     print('Seconds elapsed of test: ' + str(endTime - startTime))

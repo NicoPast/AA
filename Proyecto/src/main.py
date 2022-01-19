@@ -13,6 +13,9 @@ from evaluateLogistic import evalLogisticReg
 
 import time
 
+def sigmoide(z):
+    return (1 / (1 + np.exp(-z))) + 1e-9
+
 def loadCSV(fileName):
     data = read_csv(fileName, sep=';',  on_bad_lines='skip')
     data.fillna('empty', inplace=True)
@@ -24,26 +27,58 @@ def evalSVM(xTrain, xVal, xTest, yTrain, yVal, yTest):
     print('Accuracy over Test sample: ' + str(accuracy_score(yTest, s.predict(xTest)) * 100) + '%')
 
 def evalNeuronal(xTrain, xVal, xTest, yTrain, yVal, yTest, n):
-    num_etiquetas = 1
-    num_ocultas = np.array([60, 20])
+    ocultas = np.array([[20], [40], [60], [80], [100], [120]]) #TO DO: Make it work with [60, 20]
+    resOc = np.zeros(ocultas.shape[0])
+
+    startTime = time.time()
+
+    tagsTrain = np.zeros((len(yTrain), 2))
+    print(tagsTrain[0][1])
+    for i in range(len(yTrain)):
+        tagsTrain[i][int(yTrain[i])] = 1
+
+    tagsVal = np.zeros((len(yVal), 2))
+    for i in range(len(yVal)):
+        tagsVal[i][int(yVal[i])] = 1
+
+    print(ocultas.shape[0])
+
+    num_etiquetas = 2
     num_entradas = n
 
-    eIni = 0.12
-    laps = 70
-    reg = 1
+    for i in np.arange(ocultas.shape[0]):
+        print("Testing with " + str(ocultas[i]))
+        num_ocultas = np.array(ocultas[i])
+        th = optm_backprop( 
+        num_entradas, num_ocultas, num_etiquetas, 
+        xTrain, xVal, yTrain, yVal, tagsTrain, tagsTrain)
 
-    th = optm_backprop(eIni, 
-    num_entradas, num_ocultas, num_etiquetas, 
-    xTrain, xVal, yTrain, yVal, 
-    laps, reg)
+        res = forwardProp(xTest, th.shape[0], th)[-1]
+        maxIndices = np.argmax(res,axis=1)
+        acertados = np.sum(maxIndices == yTest)
+        resOc[i] = acertados*100/np.shape(res)[0]
+        print("Accuracy over Test sample: " + str(resOc[i]) + "%")
 
-    res = forwardProp(xTest, th.shape[0], th)[-1]
-    maxIndices = np.argmax(res,axis=1) + 1 
-    acertados = np.sum(maxIndices == yTest)
-    print("Accuracy over Test sample: " + str(acertados*100/np.shape(res)[0]) + "%")
+    bestAcc = np.max(resOc)
+    bestOcIndex = np.where(bestAcc == resOc)[0]
+
+    print('Best Accuracy: ' + str(bestAcc))
+    print('Best neurons in hidden layer: ' + str(ocultas[bestOcIndex]))
+
+    endTime = time.time()
+    print('Seconds elapsed of test: ' + str(endTime - startTime))
+
+    plt.plot(ocultas, resOc)
+    plt.show()
 
 def evalLogistic(xTrain, xVal, xTest, yTrain, yVal, yTest):
-    evalLogisticReg(xTrain, xVal, yTrain, yVal)
+    th, pol = evalLogisticReg(xTrain, xVal, yTrain, yVal)
+
+    xPolTest = pol.fit_transform(xTest)
+
+    res = sigmoide(np.dot(th, xPolTest.T))
+    acertados = np.sum((res >= 0.5) == yTest)
+    print('Accuracy over Test sample: ' + str(acertados*100/np.shape(res)[0]) + "%")
 
 def main():
     dataR = loadCSV("../Data/MushroomDataset/secondary_data_shuffled.csv")
@@ -59,9 +94,9 @@ def main():
     m = y.shape[0]
     n = x.shape[1]
 
-    trainPerc = 0.4
-    valPerc = 0.2 + trainPerc
-    testPerc = 0.2 + valPerc
+    trainPerc = 0.02
+    valPerc = 0.02 + trainPerc
+    testPerc = 0.02 + valPerc
     train = int(trainPerc * m)
     val = int(valPerc * m)
     test = int(testPerc * m)
