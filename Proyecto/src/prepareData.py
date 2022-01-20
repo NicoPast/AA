@@ -25,7 +25,7 @@ class Surface(Enum):
         t = 8
         w = 9
         e = 10
-        d = 11 # TO DO: wat
+        d = 11
         f = 12
 
 class Color(Enum):
