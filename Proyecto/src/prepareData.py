@@ -238,12 +238,6 @@ def analyzeData(data):
     edibles = np.where(data['class'])[0]
     poisonous = np.where(data['class'] == 0)[0]
 
-    0people = np.where(data['persons'] == 0)[0]
-
-    temperaturaX = [...]
-
-    len(temperaturaX[0people])
-
     numEdibles = len(edibles)
     numPoisonous = len(poisonous)
 
