@@ -12,7 +12,7 @@ import time
 from threadRetVal import ThreadWithReturnValue
 
 def sigmoide(z):
-    return (1 / (1 + np.exp(-z))) + 1e-9
+    return (1 / (1 + np.exp(-z)))
 
 def coste(thetas, x, y):
     h = sigmoide(np.dot(x, thetas))
@@ -36,7 +36,7 @@ def threadMethod(xPolTrain, xPolVal, yTrain, yVal, n, exp, l):
 
 def evalLogisticReg(xTrain, xVal, yTrain, yVal):
     ls = np.array([0.01, 0.03, 0.1, 0.3, 1.0, 3.0, 10.0, 30.0])
-    exps = np.array([1, 2, 3]) # 4 peta
+    exps = np.array([1, 2]) # 3 asks for too much memory
 
     numLs = ls.shape[0]
     numExps = exps.shape[0]
@@ -50,7 +50,7 @@ def evalLogisticReg(xTrain, xVal, yTrain, yVal):
 
     resCost = np.zeros(numExps * numLs).reshape(numExps, numLs)
     resThet = np.empty_like(resCost, dtype=object)
-    threads = np.empty_like(resCost, dtype=object)
+    threads = np.empty_like(resCost, dtype=object) # can't be used, for lack of storage
 
     for i in np.arange(numExps):
         xPolTrain = pol[i].fit_transform(xTrain)
@@ -66,6 +66,8 @@ def evalLogisticReg(xTrain, xVal, yTrain, yVal):
 
     bestCost = np.min(resCost)
     w = np.where(resCost == bestCost)
+    print(bestCost)
+    print(resCost)
     bestExpIndex = w[0][0]
     bestLIndex = w[1][0]
     bestTheta = resThet[bestExpIndex, bestLIndex]

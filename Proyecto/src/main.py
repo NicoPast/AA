@@ -7,7 +7,7 @@ from sklearn.metrics import accuracy_score
 from pandas.io.parsers import read_csv
 
 from prepareData import analyzeData, prepareData
-from evaluateSVM import evaluateSVM
+from evaluateSVM import evaluateSVM, evaluateSVMLinear
 from evaluateNeuronal import evalNN, getNumAcertadosNN
 from evaluateLogistic import evalLogisticReg, getNumAcertadosLog
 
@@ -119,6 +119,14 @@ def evalSVM(xTrain, xVal, xTest, yTrain, yVal, yTest):
 
     return accuracy, acc, c, sig
 
+def evalSVMLinear(xTrain, xVal, xTest, yTrain, yVal, yTest):
+    print("\nCOMENCING TRAINING OF SVM LINEAR\n")
+
+    s, acc, c = evaluateSVMLinear(xTrain, xVal, yTrain, yVal)
+    accuracy = accuracy_score(yTest, s.predict(xTest)) * 100
+    print('Accuracy over Test sample: ' + str(accuracy) + '%')
+    return accuracy, acc, c
+
 def createDataSets(x, y, m, trainPerc, valPerc, testPerc):
     if(trainPerc + valPerc + testPerc > 1.0):
         print("ERROR: Percentages given not valid")
@@ -161,6 +169,11 @@ def main():
     trainPerc = 0.2
     valPerc = 0.2
     testPerc = 0.2
+
+    # 0.2 0.2 0.2
+    # Seconds taken for the evaluation: 8767.091146945953
+    # Minutes taken for the evaluation: 146.11818578243256
+    # Hours taken for the evaluation: 2.4353030963738758
 
     xTrain, yTrain, xVal, yVal, xTest, yTest = createDataSets(x, y, m, trainPerc, valPerc, testPerc)
 
