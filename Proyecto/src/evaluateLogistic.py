@@ -66,8 +66,6 @@ def evalLogisticReg(xTrain, xVal, yTrain, yVal):
 
     bestCost = np.min(resCost)
     w = np.where(resCost == bestCost)
-    print(bestCost)
-    print(resCost)
     bestExpIndex = w[0][0]
     bestLIndex = w[1][0]
     bestTheta = resThet[bestExpIndex, bestLIndex]

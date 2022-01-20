@@ -182,11 +182,14 @@ def main():
     logAcc, logAccVal, logCost, logL, logExp = evalLogistic(xTrain, xVal, xTest, yTrain, yVal, yTest)
 
     nnHidenLayer, nnAcc, nnAccVal, nnCost, nnReg, nnLaps = evalNeuronal(xTrain, xVal, xTest, yTrain, yVal, yTest, n)
+
+    svmLAcc, svmLAccVal, svmLC= evalSVMLinear(xTrain, xVal, xTest, yTrain, yVal, yTest)
     
     svmAcc, svmAccVal, svmC, svmSig = evalSVM(xTrain, xVal, xTest, yTrain, yVal, yTest)
 
     print('\nRESULTS OF LOGISTIC REGRESSION\n')
     print("Best accuracy: " + str(logAcc))
+    print("Accuracy of train: " + str(logAccVal) + "%")
     print('Best cost: ' + str(logCost))
     print('Best lambda: ' + str(logL))
     print('Best exponent: ' + str(logExp))
@@ -198,6 +201,11 @@ def main():
     print('Best cost: ' + str(nnCost))
     print('Best reg: ' + str(nnReg))
     print('Best laps: ' + str(nnLaps))
+
+    print('\nRESULTS OF SVM LINEAR\n')
+    print("Best accuracy: " + str(svmLAcc))
+    print("Accuracy of train: " + str(svmLAccVal) + "%")
+    print("Best C: " + str(svmLC))
 
     print('\nRESULTS OF SVM\n')
     print("Best accuracy: " + str(svmAcc))
@@ -213,12 +221,12 @@ def main():
     print('Minutes taken for the evaluation: ' + str(deltaTime/60))
     print('Hours taken for the evaluation: ' + str(deltaTime/3600))
 
-    plt.figure(figsize=(12, 10))
-    plt.bar(np.arange(3), [logAcc, nnAcc, svmAcc])
+    plt.figure(figsize=(14, 10))
+    plt.bar(np.arange(4), [logAcc, nnAcc, svmLAcc, svmAcc])
     plt.title('Accuracy comparasion between learning algorithms')
     plt.ylabel('Accuracy')
-    xlabels = ['Logistic Regresion\nAccuracy: ' + str(logAcc) + '%', 'Neural Network\nAccuracy :' + str(nnAcc) + '%', 'SVM\nAccuracy: ' + str(svmAcc) + '%']
-    plt.xticks(np.arange(3), xlabels)
+    xlabels = ['Logistic Regresion\nAccuracy: ' + str(logAcc) + '%', 'Neural Network\nAccuracy :' + str(nnAcc) + '%', 'SVM Linear\nAccuracy: ' + str(svmLAcc) + '%', 'SVM Gaussian\nAccuracy: ' + str(svmAcc) + '%']
+    plt.xticks(np.arange(4), xlabels)
     plt.savefig('../Results/FinalGraph.png', bbox_inches='tight')
     plt.close()
 

@@ -84,7 +84,7 @@ def evaluateSVM(x, xVal, y, yVal):
 
     return bestSVM, bestAcc, bestC, bestSigma
 
-def threadMethod(x, xVal, y, yVal, c):
+def threadMethodLinear(x, xVal, y, yVal, c):
     print('Testing c ' + str(c))
     s = svm.SVC(kernel='linear', C=c)
     s.fit(x,y)
@@ -92,7 +92,7 @@ def threadMethod(x, xVal, y, yVal, c):
     print('Completed c ' + str(c))
     return s, accuracy_score(yVal, s.predict(xVal))
 
-def evaluateSVMLinear():
+def evaluateSVMLinear(x, xVal, y, yVal):
     startTime = time.time()
 
     cs = np.array([0.01, 0.03, 0.1, 0.3, 1, 3, 10, 30])
@@ -104,7 +104,7 @@ def evaluateSVMLinear():
     threads = np.empty_like(resAcc, dtype=object)
 
     for i in np.arange(numCs):
-        threads[i] = ThreadWithReturnValue(target=threadMethod, args=(x, xVal, y, yVal, cs[i], sigmas[j],))
+        threads[i] = ThreadWithReturnValue(target=threadMethodLinear, args=(x, xVal, y, yVal, cs[i],))
         threads[i].start()
 
     for i in np.arange(numCs):
@@ -113,7 +113,7 @@ def evaluateSVMLinear():
     bestAcc = np.max(resAcc)
     w = np.where(resAcc == bestAcc)
     bestC = cs[w[0]]
-    bestSVM = resSVM[w[0]]
+    bestSVM = resSVM[w[0]][0]
 
     print()
     print("Best accuracy: " + str(bestAcc))

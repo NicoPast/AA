@@ -161,11 +161,12 @@ def evalNN(num_entradas, num_ocultas, num_etiquetas, xTrain, xVal, yTrain, yVal,
 
     randomTries = 1
 
+    bestCost = 10000
+
     for i in np.arange(numRegs):
         for j in np.arange(numLaps):
             print(str(num_ocultas) + ' Testing for reg: ' + str(regs[i]) + ' and laps: ' + str(laps[j]))
             pesos = np.random.uniform(-eIni, eIni, pesosSize)
-            costOpt = 10000
             # because its random, finds the best out of a number of trials
             for x in np.arange(randomTries):
                 out = minimize(fun = backprop, x0= pesos, 
@@ -173,15 +174,11 @@ def evalNN(num_entradas, num_ocultas, num_etiquetas, xTrain, xVal, yTrain, yVal,
                     method='TNC', jac = True, options = {'maxiter': laps[j]})
                 thetas = getThetas(num_entradas, num_ocultas, num_etiquetas, out)
                 cost = coste(xTrain, tagsTrain, thetas.shape[0], thetas)
-                if(cost < costOpt):
-                    resThet[i,j] = thetas
-                    resCost[i,j] = cost
-
-    bestCost = np.min(resCost)
-    w = np.where(resCost == bestCost)
-    bestRegIndex = w[0][0]
-    bestLapsIndex = w[1][0]
-    bestTheta = resThet[bestRegIndex, bestLapsIndex]
+                if(cost < bestCost):
+                    bestCost = cost
+                    bestTheta = thetas
+                    bestRegIndex = i
+                    bestLapsIndex = j
 
     print()
 
