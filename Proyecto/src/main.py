@@ -170,11 +170,6 @@ def main():
     valPerc = 0.2
     testPerc = 0.2
 
-    # 0.2 0.2 0.2
-    # Seconds taken for the evaluation: 8767.091146945953
-    # Minutes taken for the evaluation: 146.11818578243256
-    # Hours taken for the evaluation: 2.4353030963738758
-
     xTrain, yTrain, xVal, yVal, xTest, yTest = createDataSets(x, y, m, trainPerc, valPerc, testPerc)
 
     startTime = time.time()
@@ -220,6 +215,11 @@ def main():
     print('Seconds taken for the evaluation: ' + str(deltaTime))
     print('Minutes taken for the evaluation: ' + str(deltaTime/60))
     print('Hours taken for the evaluation: ' + str(deltaTime/3600))
+
+    # 0.2 0.2 0.2
+    # Seconds taken for the evaluation: 9397.011303186417
+    # Minutes taken for the evaluation: 156.61685505310695
+    # Hours taken for the evaluation: 2.6102809175517825
 
     plt.figure(figsize=(14, 10))
     plt.bar(np.arange(4), [logAcc, nnAcc, svmLAcc, svmAcc])
