@@ -21,8 +21,6 @@ def threadMethod(x, xVal, y, yVal, c, sigma):
     return s, accuracy_score(yVal, s.predict(xVal))
 
 def evaluateSVM(x, xVal, y, yVal):
-    print("\nCOMENCING TRAINING OF SVM\n")
-
     startTime = time.time()
 
     cs = np.array([0.01, 0.03, 0.1, 0.3, 1, 3, 10, 30])
@@ -56,13 +54,14 @@ def evaluateSVM(x, xVal, y, yVal):
     bestSigma = sigmas[w[1][0]]
     bestSVM = resSVM[w[0][0],w[1][0]]
 
+    print()
     print("Best accuracy: " + str(bestAcc))
     print("Best C: " + str(bestC))
     print("Best Sigma: " + str(bestSigma))
 
     endTime = time.time()
     print('Seconds elapsed of test: ' + str(endTime - startTime))
-    
+
     fig = plt.figure()
 
     cc, ss = np.meshgrid(sigmas, cs)
@@ -75,7 +74,8 @@ def evaluateSVM(x, xVal, y, yVal):
     fig.add_axes(ax)
 
     ax.plot_surface(ss,cc,resAcc, cmap=cm.jet, linewidth=0, antialiased=False)
-    plt.show()
+    plt.savefig('../Results/SVM/SVM_1.png', bbox_inches='tight')
+    plt.close()
 
     plt.scatter(ss, cc, c=resAcc)
     plt.xscale('log')
@@ -85,6 +85,7 @@ def evaluateSVM(x, xVal, y, yVal):
     plt.clim(np.min(resAcc), np.max(resAcc))
     plt.colorbar().set_label('Accuracy')
     plt.scatter(bestC, bestSigma, marker='x', color='r')
-    plt.show()
+    plt.savefig('../Results/SVM/SVM_2.png', bbox_inches='tight')
+    plt.close()
 
     return bestSVM, bestAcc, bestC, bestSigma

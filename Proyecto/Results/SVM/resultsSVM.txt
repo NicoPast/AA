@@ -1,0 +1,48 @@
+0.02 0.02 0.02
+Best accuracy: 0.7493857493857494
+C: 10.0
+Sigma: 10.0
+Accuracy over Test sample: 13.338788870703763%
+
+0.1 0.1 0.1
+Best accuracy: 0.5716391026690683
+C: 0.1
+Sigma: 30.0
+
+0.2 0.2 0.2
+Best accuracy: 0.6571966595709842
+C: 0.1
+Sigma: 10.0
+
+0.2 0.2 0.2 Shuffled
+Best accuracy: 0.9997543802194203
+C: 3.0
+Sigma: 3.0
+Seconds elapsed of test: 5572.425535917282
+Accuracy over Test sample: 99.98362534796136%
+
+0.2 0.2 0.2 Shuffled Thread
+Best accuracy: 0.9997543802194203
+C: 3.0
+Sigma: 3.0
+Seconds elapsed of test: 3856.3216075897217
+Accuracy over Test sample: 99.98362534796136%
+
+0.05 0.05 0.05
+Best accuracy: 0.9967245332459875
+Best C: 10.0
+Best Sigma: 3.0
+Seconds elapsed of test: 104.33971190452576
+Accuracy over Test sample: 99.70530451866405%
+
+0.01 0.01 0.01
+Best accuracy: 0.9590834697217676
+Best C: 10.0
+Best Sigma: 3.0
+Seconds elapsed of test: 1.951230764389038
+Accuracy over Test sample: 95.90834697217676%
+
+=====================================================
+=====================Real Value======================
+=====================================================
+

@@ -8,32 +8,60 @@ from pandas.io.parsers import read_csv
 
 from prepareData import analyzeData, prepareData
 from evaluateSVM import evaluateSVM
-from evaluateNeuronal import optm_backprop, forwardProp
-from evaluateLogistic import evalLogisticReg
+from evaluateNeuronal import evalNN, getNumAcertadosNN
+from evaluateLogistic import evalLogisticReg, getNumAcertadosLog
+
+from threadRetVal import ThreadWithReturnValue
 
 import time
 
-def sigmoide(z):
-    return (1 / (1 + np.exp(-z))) + 1e-9
-
 def loadCSV(fileName):
-    data = read_csv(fileName, sep=';',  on_bad_lines='skip')
+    data = read_csv(fileName, sep=';', on_bad_lines='skip')
     data.fillna('empty', inplace=True)
     prepareData(data)
     return data
 
-def evalSVM(xTrain, xVal, xTest, yTrain, yVal, yTest):
-    s, acc, c, sig = evaluateSVM(xTrain, xVal, yTrain, yVal)
-    print('Accuracy over Test sample: ' + str(accuracy_score(yTest, s.predict(xTest)) * 100) + '%')
+def evalLogistic(xTrain, xVal, xTest, yTrain, yVal, yTest):
+    print("\nCOMENCING TRAINING OF LOGISTIC REGRESION\n")
+
+    th, pol, acc, cost, l, exp = evalLogisticReg(xTrain, xVal, yTrain, yVal)
+
+    xPolTest = pol.fit_transform(xTest)
+
+    acertados = getNumAcertadosLog(th, xPolTest, yTest)
+    accuracy = acertados*100/np.shape(xTest)[0]
+    print('Accuracy over Test sample: ' + str(accuracy) + "%")
+
+    return accuracy, acc, cost, l, exp
+
+def evalNueronalThread(ocultas, num_entradas, num_etiquetas, xTrain, xVal, xTest, yTrain, yVal, yTest, tagsTrain, tagsVal):
+    print("\nTesting with " + str(ocultas))
+    num_ocultas = np.array(ocultas)
+    th, acc, cost, reg, laps = evalNN( 
+    num_entradas, num_ocultas, num_etiquetas, 
+    xTrain, xVal, yTrain, yVal, tagsTrain, tagsVal)
+
+    acertados = getNumAcertadosNN(xTest, yTest, th)
+
+    accuracy = acertados*100/np.shape(xTest)[0]
+    print("Accuracy over Test sample: " + str(accuracy) + "%")
+    return accuracy, acc, cost, reg, laps
 
 def evalNeuronal(xTrain, xVal, xTest, yTrain, yVal, yTest, n):
-    ocultas = np.array([[20], [40], [60], [80], [100], [120]]) #TO DO: Make it work with [60, 20]
-    resOc = np.zeros(ocultas.shape[0])
+    print("\nCOMENCING TRAINING OF NEURONAL NETWORK\n")
+
+    ocultas = np.array([[20], [40], [60], [80], [100], [120], [60, 20], [60, 40]])
+    numOcultas = ocultas.shape[0]
+
+    resAcc = np.zeros(numOcultas)
+    resAccVal = np.zeros(numOcultas)
+    resCost = np.zeros(numOcultas)
+    resReg = np.zeros(numOcultas)
+    resLaps = np.zeros(numOcultas)
 
     startTime = time.time()
 
     tagsTrain = np.zeros((len(yTrain), 2))
-    print(tagsTrain[0][1])
     for i in range(len(yTrain)):
         tagsTrain[i][int(yTrain[i])] = 1
 
@@ -41,62 +69,68 @@ def evalNeuronal(xTrain, xVal, xTest, yTrain, yVal, yTest, n):
     for i in range(len(yVal)):
         tagsVal[i][int(yVal[i])] = 1
 
-    print(ocultas.shape[0])
-
     num_etiquetas = 2
     num_entradas = n
 
-    for i in np.arange(ocultas.shape[0]):
-        print("Testing with " + str(ocultas[i]))
-        num_ocultas = np.array(ocultas[i])
-        th = optm_backprop( 
-        num_entradas, num_ocultas, num_etiquetas, 
-        xTrain, xVal, yTrain, yVal, tagsTrain, tagsTrain)
+    threads = np.empty(numOcultas, dtype=object)
 
-        res = forwardProp(xTest, th.shape[0], th)[-1]
-        maxIndices = np.argmax(res,axis=1)
-        acertados = np.sum(maxIndices == yTest)
-        resOc[i] = acertados*100/np.shape(res)[0]
-        print("Accuracy over Test sample: " + str(resOc[i]) + "%")
+    for i in np.arange(numOcultas):
+        threads[i] = ThreadWithReturnValue(target=evalNueronalThread, args=(ocultas[i], num_entradas, num_etiquetas, xTrain, xVal, xTest, yTrain, yVal, yTest, tagsTrain, tagsVal,))
+        threads[i].start()
 
-    bestAcc = np.max(resOc)
-    bestOcIndex = np.where(bestAcc == resOc)[0]
+    for i in np.arange(numOcultas):
+        resAcc[i], resAccVal[i], resCost[i], resReg[i], resLaps[i] = threads[i].join()
 
-    print('Best Accuracy: ' + str(bestAcc))
+    bestAcc = np.max(resAcc)
+    bestOcIndex = np.where(bestAcc == resAcc)[0]
+    bestCost = resCost[bestOcIndex]
+    bestReg = resReg[bestOcIndex]
+    bestLaps = resLaps[bestOcIndex]
+    bestAccVal = resAccVal[bestOcIndex]
+
+    print()
     print('Best neurons in hidden layer: ' + str(ocultas[bestOcIndex]))
+    print('Best Accuracy: ' + str(bestAcc) + '%')
+    print("Accuracy of train: " + str(bestAccVal) + "%")
+    print('Best cost: ' + str(bestCost))
+    print('Best reg: ' + str(bestReg))
+    print('Best laps: ' + str(bestLaps))
 
     endTime = time.time()
     print('Seconds elapsed of test: ' + str(endTime - startTime))
 
-    plt.plot(ocultas, resOc)
-    plt.show()
+    ocultasStr = []
+    for i in np.arange(numOcultas):
+        ocultasStr.append(str(ocultas[i]))
 
-def evalLogistic(xTrain, xVal, xTest, yTrain, yVal, yTest):
-    th, pol = evalLogisticReg(xTrain, xVal, yTrain, yVal)
+    plt.plot(np.arange(numOcultas), resAcc)
+    plt.xticks(np.arange(numOcultas), ocultasStr)
+    plt.savefig('../Results/NeuronalNetwork/NN.png', bbox_inches='tight')
+    plt.close()
 
-    xPolTest = pol.fit_transform(xTest)
+    return ocultas[bestOcIndex], bestAcc, bestAccVal, bestCost, bestReg, bestLaps
 
-    res = sigmoide(np.dot(th, xPolTest.T))
-    acertados = np.sum((res >= 0.5) == yTest)
-    print('Accuracy over Test sample: ' + str(acertados*100/np.shape(res)[0]) + "%")
+def evalSVM(xTrain, xVal, xTest, yTrain, yVal, yTest):
+    print("\nCOMENCING TRAINING OF SVM\n")
 
-def main():
-    dataR = loadCSV("../Data/MushroomDataset/secondary_data_shuffled.csv")
+    s, acc, c, sig = evaluateSVM(xTrain, xVal, yTrain, yVal)
+    accuracy = accuracy_score(yTest, s.predict(xTest)) * 100
+    print('Accuracy over Test sample: ' + str(accuracy) + '%')
+
+    return accuracy, acc, c, sig
+
+def createDataSets(x, y, m, trainPerc, valPerc, testPerc):
+    if(trainPerc + valPerc + testPerc > 1.0):
+        print("ERROR: Percentages given not valid")
+        exit(-1)
+
+    print('Size of Training set: ' + str(int(trainPerc * m)))
+    print('Size of Validation set: ' + str(int(valPerc * m)))
+    print('Size of Teseting set: ' + str(int(testPerc * m)))
     
-    dataR.fillna('empty', inplace=True)
+    valPerc += trainPerc
+    testPerc += valPerc
 
-    #analyzeData(dataR)
-
-    data = dataR.to_numpy()
-    y = data[:, 0]
-    x = data[:, 1:]
-
-    m = y.shape[0]
-    n = x.shape[1]
-
-    trainPerc = 0.02
-    valPerc = 0.02 + trainPerc
-    testPerc = 0.02 + valPerc
     train = int(trainPerc * m)
     val = int(valPerc * m)
     test = int(testPerc * m)
@@ -110,48 +144,70 @@ def main():
     xTest = x[val:test]
     yTest = y[val:test]
 
+    return xTrain, yTrain, xVal, yVal, xTest, yTest
+
+def main():
+    dataR = loadCSV("../Data/MushroomDataset/secondary_data_shuffled.csv")
+
+    #analyzeData(dataR)
+
+    data = dataR.to_numpy()
+    y = data[:, 0]
+    x = data[:, 1:]
+
+    m = y.shape[0]
+    n = x.shape[1]
+
+    trainPerc = 0.2
+    valPerc = 0.2
+    testPerc = 0.2
+
+    xTrain, yTrain, xVal, yVal, xTest, yTest = createDataSets(x, y, m, trainPerc, valPerc, testPerc)
+
+    startTime = time.time()
+
+    logAcc, logAccVal, logCost, logL, logExp = evalLogistic(xTrain, xVal, xTest, yTrain, yVal, yTest)
+
+    nnHidenLayer, nnAcc, nnAccVal, nnCost, nnReg, nnLaps = evalNeuronal(xTrain, xVal, xTest, yTrain, yVal, yTest, n)
     
-    print(xTrain.shape)
-    print(yTrain.shape)
+    svmAcc, svmAccVal, svmC, svmSig = evalSVM(xTrain, xVal, xTest, yTrain, yVal, yTest)
 
-    print(xVal.shape)
-    print(yVal.shape)
+    print('\nRESULTS OF LOGISTIC REGRESSION\n')
+    print("Best accuracy: " + str(logAcc))
+    print('Best cost: ' + str(logCost))
+    print('Best lambda: ' + str(logL))
+    print('Best exponent: ' + str(logExp))
 
-    #evalSVM(xTrain, xVal, xTest, yTrain, yVal, yTest)
+    print('\nRESULTS OF NEURONAL NETWORK\n')
+    print('Best Accuracy: ' + str(nnAcc) + '%')
+    print("Accuracy of train: " + str(nnAccVal) + "%")
+    print('Best neurons in hidden layer: ' + str(nnHidenLayer))
+    print('Best cost: ' + str(nnCost))
+    print('Best reg: ' + str(nnReg))
+    print('Best laps: ' + str(nnLaps))
 
-    # 0.02 0.02 0.02
-    # Best accuracy: 0.7493857493857494
-    # C: 10.0
-    # Sigma: 10.0
-    # Accuracy over Test sample: 13.338788870703763%
+    print('\nRESULTS OF SVM\n')
+    print("Best accuracy: " + str(svmAcc))
+    print("Accuracy of train: " + str(svmAccVal) + "%")
+    print("Best C: " + str(svmC))
+    print("Best Sigma: " + str(svmSig))
 
-    # 0.1 0.1 0.1
-    # Best accuracy: 0.5716391026690683
-    # C: 0.1
-    # Sigma: 30.0
+    endTime = time.time()
+    deltaTime = endTime - startTime
 
-    # 0.2 0.2 0.2
-    # Best accuracy: 0.6571966595709842
-    # C: 0.1
-    # Sigma: 10.0
+    print()
+    print('Seconds taken for the evaluation: ' + str(deltaTime))
+    print('Minutes taken for the evaluation: ' + str(deltaTime/60))
+    print('Hours taken for the evaluation: ' + str(deltaTime/3600))
 
-    # 0.2 0.2 0.2 Shuffled
-    # Best accuracy: 0.9997543802194203
-    # C: 3.0
-    # Sigma: 3.0
-    # Seconds elapsed of test: 5572.425535917282
-    # Accuracy over Test sample: 99.98362534796136%
-
-    # 0.2 0.2 0.2 Shuffled Thread
-    # Best accuracy: 0.9997543802194203
-    # C: 3.0
-    # Sigma: 3.0
-    # Seconds elapsed of test: 3856.3216075897217
-    # Accuracy over Test sample: 99.98362534796136%
-
-    evalNeuronal(xTrain, xVal, xTest, yTrain, yVal, yTest, n)
-
-    #evalLogistic(xTrain, xVal, xTest, yTrain, yVal, yTest)
+    plt.figure(figsize=(12, 10))
+    plt.bar(np.arange(3), [logAcc, nnAcc, svmAcc])
+    plt.title('Accuracy comparasion between learning algorithms')
+    plt.ylabel('Accuracy')
+    xlabels = ['Logistic Regresion\nAccuracy: ' + str(logAcc) + '%', 'Neural Network\nAccuracy :' + str(nnAcc) + '%', 'SVM\nAccuracy: ' + str(svmAcc) + '%']
+    plt.xticks(np.arange(3), xlabels)
+    plt.savefig('../Results/FinalGraph.png', bbox_inches='tight')
+    plt.close()
 
 if __name__ == "__main__":
     main()

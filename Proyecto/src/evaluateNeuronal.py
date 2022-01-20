@@ -2,8 +2,6 @@ import numpy as np
 
 from scipy.optimize import minimize
 
-import time
-
 def sigmoide(z):
     return 1 / (1 + np.exp(-z)) + 1e-9
 
@@ -145,9 +143,7 @@ def getThetas(num_entradas, num_ocultas, num_etiquetas, out):
     
     return thetas
 
-def optm_backprop(num_entradas, num_ocultas, num_etiquetas, xTrain, xVal, yTrain, yVal, tagsTrain, tagsVal):
-    print("\nCOMENCING TRAINING OF NEURONAL NETWORK\n")
-
+def evalNN(num_entradas, num_ocultas, num_etiquetas, xTrain, xVal, yTrain, yVal, tagsTrain, tagsVal):
     eIni = np.sqrt(6) / np.sqrt(num_etiquetas + num_entradas) # = sqrt(6) / sqrt(Lin + Lout)
     regs = np.array([0.01, 0.03, 0.1, 0.3, 0.1, 0.3, 1.0, 3.0, 10.0, 30.0])
     laps = np.array([25, 50, 75, 100, 250, 500, 750, 1000])
@@ -157,43 +153,52 @@ def optm_backprop(num_entradas, num_ocultas, num_etiquetas, xTrain, xVal, yTrain
 
     resCost = np.zeros(numRegs * numLaps).reshape(numRegs, numLaps)
     resThet = np.empty_like(resCost, dtype=object)
-    threads = np.empty_like(resCost, dtype=object)
 
     pesosSize = (num_entradas + 1) * num_ocultas[0] + (num_ocultas[-1] + 1) * num_etiquetas
 
     for i in range(1, num_ocultas.shape[0]):
         pesosSize = pesosSize + ((num_ocultas[i-1] + 1) * num_ocultas[i])
 
-    startTime = time.time()
+    randomTries = 1
 
     for i in np.arange(numRegs):
-        print('Testing for reg: ' + str(regs[i]))
         for j in np.arange(numLaps):
-            print('Testing for laps: ' + str(laps[j]))
+            print(str(num_ocultas) + ' Testing for reg: ' + str(regs[i]) + ' and laps: ' + str(laps[j]))
             pesos = np.random.uniform(-eIni, eIni, pesosSize)
-            out = minimize(fun = backprop, x0= pesos, 
-                args = (num_entradas, num_ocultas, num_etiquetas, xTrain, tagsTrain, regs[i]),
-                method='TNC', jac = True, options = {'maxiter': laps[j]})            
-            resThet[i,j] = getThetas(num_entradas, num_ocultas, num_etiquetas, out)
-            resCost[i,j] = coste(xTrain, tagsTrain, resThet[i,j].shape[0], resThet[i,j])
+            costOpt = 10000
+            # because its random, finds the best out of a number of trials
+            for x in np.arange(randomTries):
+                out = minimize(fun = backprop, x0= pesos, 
+                    args = (num_entradas, num_ocultas, num_etiquetas, xTrain, tagsTrain, regs[i]),
+                    method='TNC', jac = True, options = {'maxiter': laps[j]})
+                thetas = getThetas(num_entradas, num_ocultas, num_etiquetas, out)
+                cost = coste(xTrain, tagsTrain, thetas.shape[0], thetas)
+                if(cost < costOpt):
+                    resThet[i,j] = thetas
+                    resCost[i,j] = cost
 
-    print(resCost)
     bestCost = np.min(resCost)
     w = np.where(resCost == bestCost)
     bestRegIndex = w[0][0]
     bestLapsIndex = w[1][0]
     bestTheta = resThet[bestRegIndex, bestLapsIndex]
 
-    print("Best cost: " + str(bestCost))
-    print("Best Reg: " + str(regs[bestRegIndex]))
-    print("Best Laps: " + str(laps[bestLapsIndex]))
+    print()
 
-    endTime = time.time()
-    print('Seconds elapsed of test: ' + str(endTime - startTime))
+    print(str(num_ocultas) + " Best cost: " + str(bestCost))
+    print(str(num_ocultas) + " Best Reg: " + str(regs[bestRegIndex]))
+    print(str(num_ocultas) + " Best Laps: " + str(laps[bestLapsIndex]))
 
     res = forwardProp(xVal, bestTheta.shape[0], bestTheta)[-1]
     maxIndices = np.argmax(res,axis=1)
     acertados = np.sum(maxIndices == yVal)
-    print("Accuracy of train: " + str(acertados*100/np.shape(res)[0]) + "%")
+    accuracy = acertados*100/np.shape(res)[0]
+    print(str(num_ocultas) + " Accuracy of train: " + str(accuracy) + "%")
+    print()
 
-    return bestTheta
+    return bestTheta, accuracy, bestCost, regs[bestRegIndex], laps[bestLapsIndex]
+
+def getNumAcertadosNN(x, y, thetas):
+    res = forwardProp(x, thetas.shape[0], thetas)[-1]
+    maxIndices = np.argmax(res,axis=1)
+    return np.sum(maxIndices == y)
